@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ClipboardList, X, ArrowRight } from 'lucide-react';
+import { ArrowRight, ClipboardCheck, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardIntakeForm } from '@/components/DashboardIntakeForm';
 
@@ -28,29 +28,30 @@ export function OnboardingBanner({ intakeCompleted }: OnboardingBannerProps) {
   };
 
   return (
-    <div className="space-y-0">
-      <div className="relative rounded-2xl bg-gradient-to-r from-[#0D9488]/15 to-[#2DD4BF]/15 border border-[#0D9488]/30 p-5 flex items-start gap-4">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0D9488] to-[#2DD4BF] flex items-center justify-center flex-shrink-0 shadow">
-          <ClipboardList className="w-5 h-5 text-white" />
+    <div className="dashboard-onboarding">
+      <div className="dashboard-onboarding__banner">
+        <div className="dashboard-onboarding__step">01</div>
+        <div className="dashboard-onboarding__icon">
+          <ClipboardCheck />
         </div>
-
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm">Complete your client intake form</p>
-          <p className="text-sm text-muted-foreground mt-0.5">
+        <div className="min-w-0 flex-1">
+          <p className="dashboard-kicker">Recommended next action</p>
+          <h2>Complete your client intake brief</h2>
+          <p>
             Help us configure your AI system by sharing details about your business. It only takes a few minutes.
           </p>
-          <div className="flex items-center gap-3 mt-3">
+          <div className="dashboard-onboarding__actions">
             <Button
               size="sm"
               onClick={() => setShowForm(s => !s)}
-              className="gap-1.5 bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] hover:opacity-90 text-white shadow-sm"
+              className="dashboard-primary-action h-9 gap-2 rounded-xl px-4"
             >
               {showForm ? 'Hide Form' : 'Complete Intake Form'}
-              <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${showForm ? 'rotate-90' : ''}`} />
+              <ArrowRight className={`transition-transform duration-200 ${showForm ? 'rotate-90' : ''}`} />
             </Button>
             <button
               onClick={handleDismiss}
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+              className="dashboard-onboarding__skip"
             >
               Skip for now
             </button>
@@ -59,23 +60,23 @@ export function OnboardingBanner({ intakeCompleted }: OnboardingBannerProps) {
 
         <button
           onClick={handleDismiss}
-          className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0 cursor-pointer"
+          className="dashboard-onboarding__dismiss"
           aria-label="Dismiss"
         >
-          <X className="w-4 h-4" />
+          <X />
         </button>
       </div>
 
-      {/* Inline form with slide-down animation */}
       <div
+        className="dashboard-onboarding__form"
         style={{
           display: 'grid',
           gridTemplateRows: showForm ? '1fr' : '0fr',
-          transition: 'grid-template-rows 400ms ease',
+          transition: 'grid-template-rows 300ms ease-out',
         }}
       >
         <div style={{ overflow: 'hidden' }}>
-          <div className="pt-4">
+          <div className="pt-5">
             <DashboardIntakeForm
               onClose={() => setShowForm(false)}
               onSubmitSuccess={() => setShowForm(false)}

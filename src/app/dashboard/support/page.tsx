@@ -4,19 +4,21 @@ import { auth } from '@/lib/auth';
 import { Card } from '@/components/ui/card';
 import { SupportForm } from '@/components/SupportForm';
 import { MessageSquare, Mail, Clock } from 'lucide-react';
+import { DashboardPageHeader } from '@/components/DashboardPageHeader';
 
 export default async function SupportPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect('/login');
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Support</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Get help from the Ephesus AI team.
-        </p>
-      </div>
+    <div className="dashboard-route space-y-6">
+      <DashboardPageHeader
+        eyebrow="Client success"
+        title="Support"
+        description="Get direct help from the Ephesus team with setup, integrations, or active services."
+        icon={MessageSquare}
+        status="Team available"
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[

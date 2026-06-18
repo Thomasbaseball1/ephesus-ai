@@ -8,6 +8,7 @@ import { eq } from 'drizzle-orm';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { IntakePageClient } from '@/components/IntakePageClient';
+import { DashboardPageHeader } from '@/components/DashboardPageHeader';
 import {
   ClipboardList, CheckCircle, Clock, ArrowRight,
 } from 'lucide-react';
@@ -35,13 +36,14 @@ export default async function IntakePage() {
     : null;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Intake Form</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Your client configuration form for Ephesus AI setup.
-        </p>
-      </div>
+    <div className="dashboard-route space-y-6">
+      <DashboardPageHeader
+        eyebrow="Implementation brief"
+        title="Intake Form"
+        description="The business context, routing rules, and technical details behind your Ephesus AI configuration."
+        icon={ClipboardList}
+        status={userData?.intakeCompleted ? 'Submitted' : 'Action needed'}
+      />
 
       {userData?.intakeCompleted ? (
         <Card className="p-6 gradient-border">

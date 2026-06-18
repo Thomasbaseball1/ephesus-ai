@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { DashboardPageHeader } from '@/components/DashboardPageHeader';
 import {
   CreditCard, Zap, Phone, Mail, Globe, ArrowRight, Star
 } from 'lucide-react';
@@ -31,13 +32,14 @@ export default async function SubscriptionPage() {
   if (!session) redirect('/login');
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Subscription</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Your Ephesus AI plan and billing details.
-        </p>
-      </div>
+    <div className="dashboard-route space-y-6">
+      <DashboardPageHeader
+        eyebrow="Plan and billing"
+        title="Subscription"
+        description="Your Ephesus AI service package, activation status, and billing details."
+        icon={CreditCard}
+        status="Pending setup"
+      />
 
       {/* Current plan */}
       <Card className="p-6 gradient-border">

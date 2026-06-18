@@ -9,6 +9,7 @@ import { OutlookConnectButton } from '@/components/OutlookConnectButton';
 import { InstagramConnectButton } from '@/components/InstagramConnectButton';
 import { Mail, CheckCircle, AlertCircle, Plug, Users, Info } from 'lucide-react';
 import { ensureFreshToken } from '@/lib/outlook-refresh';
+import { DashboardPageHeader } from '@/components/DashboardPageHeader';
 
 export default async function IntegrationsPage({
   searchParams,
@@ -45,13 +46,14 @@ export default async function IntegrationsPage({
     : null;
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold">Integrations</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Connect your business accounts so Ephesus AI can work on your behalf.
-        </p>
-      </div>
+    <div className="dashboard-route space-y-6">
+      <DashboardPageHeader
+        eyebrow="Connected systems"
+        title="Integrations"
+        description="Connect the business accounts and channels Ephesus AI uses to work on your behalf."
+        icon={Plug}
+        status={`${Number(isConnected) + Number(igConnected)} connected`}
+      />
 
       {/* Status toasts */}
       {params.connected === 'outlook' && (
