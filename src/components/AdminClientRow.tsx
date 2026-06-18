@@ -9,7 +9,6 @@ import {
   Mail, CheckCircle, AlertCircle, Clock, Building2,
   Webhook, Save, RefreshCw, ChevronDown, ChevronUp, Loader2
 } from 'lucide-react';
-import { AdminVoiceAgentPanel } from '@/components/AdminVoiceAgentPanel';
 
 interface AdminClientRowProps {
   integrationId: number;
@@ -94,11 +93,13 @@ export function AdminClientRow(props: AdminClientRowProps) {
   };
 
   return (
-    <Card className="gradient-border overflow-hidden">
+    <Card className="admin-integration-row overflow-hidden">
       {/* Header row */}
-      <div
-        className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-secondary/20 transition-colors"
+      <button
+        type="button"
+        className="admin-integration-row__toggle"
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
       >
         <div className="flex items-center gap-4 min-w-0">
           {/* Avatar */}
@@ -150,11 +151,11 @@ export function AdminClientRow(props: AdminClientRowProps) {
           )}
           {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
         </div>
-      </div>
+      </button>
 
       {/* Expanded details */}
       {expanded && (
-        <div className="border-t border-border px-5 py-4 space-y-5 bg-secondary/10">
+        <div className="admin-integration-row__details">
           {/* N8N Webhook URL */}
           <div>
             <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
@@ -224,11 +225,6 @@ export function AdminClientRow(props: AdminClientRowProps) {
               {renewing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
               {hasSubscription ? 'Renew' : 'Activate'}
             </Button>
-          </div>
-
-          {/* Voice Agent */}
-          <div className="pt-1 border-t border-border">
-            <AdminVoiceAgentPanel userId={props.userId} userName={props.userName} />
           </div>
 
           {/* Meta */}

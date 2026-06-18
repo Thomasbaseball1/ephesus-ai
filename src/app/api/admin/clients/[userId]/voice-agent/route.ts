@@ -1,27 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
+import { authorizeAdminRequest } from '@/lib/admin-auth';
 import { db } from '@/db';
 import { voiceAgentAssignments } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { getAssistant } from '@/lib/vapi';
 
-const ADMIN_EMAILS = new Set([
-  'tmore.haller@yahoo.com',
-  'thaller@algobull.ai',
-  'sreid@algobull.ai',
-  'deenwest@gmail.com',
-]);
-
 // GET — fetch assignments for a client
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !ADMIN_EMAILS.has(session.user.email)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authorization = await authorizeAdminRequest(req.headers);
+  if (!authorization.ok) return authorization.response;
 
   const { userId } = await params;
   const assignments = await db
@@ -37,10 +27,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !ADMIN_EMAILS.has(session.user.email)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authorization = await authorizeAdminRequest(req.headers);
+  if (!authorization.ok) return authorization.response;
+  const { session } = authorization;
 
   const { userId } = await params;
   const body = await req.json();
@@ -91,10 +80,8 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !ADMIN_EMAILS.has(session.user.email)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const authorization = await authorizeAdminRequest(req.headers);
+  if (!authorization.ok) return authorization.response;
 
   const { userId } = await params;
   const { assignmentId } = await req.json();

@@ -72,11 +72,13 @@ export function AdminInstagramRow(props: Props) {
   };
 
   return (
-    <Card className="gradient-border overflow-hidden">
+    <Card className="admin-integration-row overflow-hidden">
       {/* Header row */}
-      <div
-        className="px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-secondary/20 transition-colors"
+      <button
+        type="button"
+        className="admin-integration-row__toggle"
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
       >
         <div className="flex items-center gap-4 min-w-0">
           <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
@@ -124,11 +126,11 @@ export function AdminInstagramRow(props: Props) {
           )}
           {expanded ? <ChevronUp className="w-4 h-4 text-muted-foreground" /> : <ChevronDown className="w-4 h-4 text-muted-foreground" />}
         </div>
-      </div>
+      </button>
 
       {/* Expanded */}
       {expanded && (
-        <div className="border-t border-border px-5 py-4 space-y-5 bg-secondary/10">
+        <div className="admin-integration-row__details">
 
           {/* n8n Webhook URL */}
           <div>

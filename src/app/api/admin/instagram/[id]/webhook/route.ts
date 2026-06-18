@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
+import { authorizeAdminRequest } from '@/lib/admin-auth';
 import { db } from '@/db';
 import { instagramIntegrations } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -9,10 +8,8 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-
-  // TODO: add admin role check when roles are implemented
+  const authorization = await authorizeAdminRequest(req.headers);
+  if (!authorization.ok) return authorization.response;
   const { id } = await params;
   const integrationId = parseInt(id);
   if (isNaN(integrationId)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 });

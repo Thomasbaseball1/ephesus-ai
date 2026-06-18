@@ -64,10 +64,12 @@ export function AdminVoiceAgentPanel({ userId, userName }: Props) {
   };
 
   useEffect(() => {
-    if (open) {
-      loadAssignments();
-      loadAssistants();
-    }
+    loadAssignments();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  useEffect(() => {
+    if (open) loadAssistants();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -130,8 +132,8 @@ export function AdminVoiceAgentPanel({ userId, userName }: Props) {
   const activeAssignments = assignments.filter(a => a.isActive);
 
   return (
-    <div>
-      <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-1.5 block">
+    <div className="admin-voice-panel">
+      <label className="admin-field-label">
         AI Receptionist
       </label>
 
@@ -141,7 +143,7 @@ export function AdminVoiceAgentPanel({ userId, userName }: Props) {
       ) : activeAssignments.length > 0 ? (
         <div className="space-y-2 mb-3">
           {activeAssignments.map(a => (
-            <div key={a.id} className="flex items-center justify-between gap-2 bg-emerald-500/5 border border-emerald-500/20 rounded-lg px-3 py-2">
+            <div key={a.id} className="admin-assignment-row">
               <div className="flex items-center gap-2 min-w-0">
                 <CheckCircle className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
                 <div className="min-w-0">
@@ -184,7 +186,8 @@ export function AdminVoiceAgentPanel({ userId, userName }: Props) {
       {/* Assign new / replace */}
       <button
         onClick={() => setOpen(o => !o)}
-        className="flex items-center gap-1.5 text-xs text-[#0D9488] hover:text-[#2DD4BF] transition-colors cursor-pointer"
+        className="admin-assign-toggle"
+        aria-expanded={open}
       >
         <Plus className="w-3.5 h-3.5" />
         {activeAssignments.length > 0 ? 'Replace assistant' : 'Assign assistant'}
@@ -192,7 +195,7 @@ export function AdminVoiceAgentPanel({ userId, userName }: Props) {
       </button>
 
       {open && (
-        <div className="mt-3 space-y-2 p-3 bg-secondary/20 rounded-lg border border-border">
+        <div className="admin-assignment-form">
           {loadingAssistants ? (
             <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> Loading assistants...</p>
           ) : (
@@ -202,7 +205,7 @@ export function AdminVoiceAgentPanel({ userId, userName }: Props) {
                 <select
                   value={selectedId}
                   onChange={e => setSelectedId(e.target.value)}
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-md bg-background border border-border focus:border-[#0D9488] focus:outline-none"
+                  className="admin-select w-full pl-8 pr-3"
                 >
                   <option value="">Select an assistant...</option>
                   {assistants.map(a => (
@@ -216,13 +219,13 @@ export function AdminVoiceAgentPanel({ userId, userName }: Props) {
                 value={label}
                 onChange={e => setLabel(e.target.value)}
                 placeholder="Display label (e.g. Main Receptionist)"
-                className="w-full px-3 py-1.5 text-xs rounded-md bg-background border border-border focus:border-[#0D9488] focus:outline-none"
+                className="admin-input w-full px-3"
               />
               <Button
                 size="sm"
                 onClick={handleAssign}
                 disabled={assigning || !selectedId}
-                className="gap-1.5 bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] hover:opacity-90 text-white text-xs h-7"
+                className="admin-action-button gap-1.5 text-xs h-8"
               >
                 {assigning ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
                 Assign

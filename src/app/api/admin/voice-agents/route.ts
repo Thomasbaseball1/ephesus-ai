@@ -1,20 +1,10 @@
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
-import { auth } from '@/lib/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { authorizeAdminRequest } from '@/lib/admin-auth';
 import { listAssistants } from '@/lib/vapi';
 
-const ADMIN_EMAILS = new Set([
-  'tmore.haller@yahoo.com',
-  'thaller@algobull.ai',
-  'sreid@algobull.ai',
-  'deenwest@gmail.com',
-]);
-
-export async function GET() {
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session || !ADMIN_EMAILS.has(session.user.email)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+export async function GET(req: NextRequest) {
+  const authorization = await authorizeAdminRequest(req.headers);
+  if (!authorization.ok) return authorization.response;
 
   try {
     const assistants = await listAssistants();
