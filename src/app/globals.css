@@ -1,0 +1,570 @@
+/* Updated: 2025-12-14T07:27:56.276Z */
+/* Updated: 2025-12-14T00:39:01.268Z */
+/* Updated: 2025-12-13T19:08:58.862Z */
+/* Updated: 2025-12-07T22:30:18.545Z */
+/* Updated: 2025-12-07T22:30:18.298Z */
+/* Updated: 2025-12-05T05:40:00.603Z */
+/* Updated: 2025-11-30T22:53:45.782Z */
+/* Updated: 2025-11-26T00:23:52.411Z */
+/* Updated: 2025-11-22T16:03:57.702Z */
+/* Updated: 2025-11-22T13:48:37.117Z */
+/* Updated: 2025-11-19T00:10:32.158Z */
+/* Updated: 2025-11-16T21:23:38.678Z */
+/* Updated: 2025-11-16T20:51:35.744Z */
+/* Updated: 2025-11-16T02:48:38.310Z */
+/* Updated: 2025-11-12T03:47:16.756Z */
+/* Updated: 2025-11-12T03:47:10.667Z */
+/* Updated: 2025-11-11T21:26:04.421Z */
+/* Updated: 2025-11-11T21:21:26.697Z */
+/* Updated: 2025-11-11T13:54:02.292Z */
+/* Updated: 2025-11-11T02:41:03.247Z */
+/* Updated: 2025-11-10T23:29:56.442Z */
+/* Updated: 2025-11-09T18:59:06.065Z */
+/* Updated: 2025-11-09T03:41:06.259Z */
+/* Updated: 2025-11-09T03:20:42.310Z */
+/* Updated: 2025-11-09T03:03:20.664Z */
+/* Updated: 2025-11-09T02:40:04.198Z */
+/* Updated: 2025-11-09T00:42:50.955Z */
+/* Updated: 2025-11-09T00:35:35.065Z */
+/* Updated: 2025-11-08T23:28:03.326Z */
+/* Updated: 2025-11-08T22:47:13.509Z */
+/* Updated: 2025-11-08T21:57:16.320Z */
+/* Updated: 2025-11-08T21:57:09.336Z */
+/* Updated: 2025-11-08T18:38:15.092Z */
+/* Updated: 2025-11-08T18:31:21.760Z */
+/* Updated: 2025-11-08T18:17:17.816Z */
+/* Updated: 2025-11-08T14:14:47.776Z */
+/* Updated: 2025-11-08T02:15:49.025Z */
+/* Updated: 2025-11-07T14:04:37.233Z */
+/* Updated: 2025-11-06T04:17:24.108Z */
+/* Updated: 2025-11-06T04:11:58.832Z */
+/* Updated: 2025-11-05T00:27:49.813Z */
+/* Updated: 2025-11-05T00:27:36.675Z */
+/* Updated: 2025-11-04T01:52:09.100Z */
+/* Updated: 2025-11-04T01:51:34.840Z */
+/* Updated: 2025-11-04T01:50:01.988Z */
+/* Updated: 2025-11-04T01:16:48.391Z */
+/* Updated: 2025-11-04T01:14:28.387Z */
+/* Updated: 2025-11-04T00:22:36.840Z */
+/* Updated: 2025-11-04T00:21:46.043Z */
+/* Updated: 2025-11-04T00:11:25.773Z */
+/* Updated: 2025-11-03T03:58:54.531Z */
+/* Updated: 2025-11-03T03:44:24.254Z */
+/* Updated: 2025-11-03T03:10:35.084Z */
+/* Updated: 2025-11-03T03:09:34.033Z */
+/* Updated: 2025-11-03T03:09:11.754Z */
+/* Updated: 2025-11-03T02:47:17.539Z */
+/* Updated: 2025-11-03T01:47:22.176Z */
+/* Updated: 2025-11-03T01:44:17.879Z */
+/* Updated: 2025-11-03T00:57:40.408Z */
+/* Updated: 2025-11-03T00:03:31.295Z */
+/* Updated: 2025-11-03T00:03:25.784Z */
+/* Updated: 2025-11-01T14:57:08.194Z */
+/* Updated: 2025-11-01T14:31:50.396Z */
+/* Updated: 2025-11-01T14:21:50.860Z */
+/* Updated: 2025-10-31T23:54:04.155Z */
+/* Updated: 2025-10-31T23:03:53.892Z */
+/* Updated: 2025-10-31T23:03:49.895Z */
+/* Updated: 2025-10-31T00:41:03.553Z */
+/* Updated: 2025-10-30T23:47:29.836Z */
+/* Updated: 2025-10-30T23:31:25.954Z */
+/* Updated: 2025-10-30T23:31:17.537Z */
+/* Updated: 2025-10-30T12:24:13.408Z */
+/* Updated: 2025-10-30T12:01:42.282Z */
+/* Updated: 2025-10-30T04:47:28.542Z */
+/* Updated: 2025-10-30T04:42:59.228Z */
+/* Updated: 2025-10-30T04:37:37.653Z */
+/* Updated: 2025-10-30T04:22:37.712Z */
+/* Updated: 2025-10-30T04:13:34.694Z */
+/* Updated: 2025-10-30T01:59:20.365Z */
+/* Updated: 2025-10-30T01:49:16.383Z */
+/* Updated: 2025-10-30T01:49:09.247Z */
+/* Updated: 2025-10-30T01:45:35.932Z */
+/* Updated: 2025-10-30T01:19:54.284Z */
+/* Updated: 2025-10-30T01:16:02.338Z */
+/* Updated: 2025-10-30T01:03:01.782Z */
+/* Updated: 2025-10-29T22:49:47.873Z */
+/* Updated: 2025-10-29T02:13:50.594Z */
+/* Updated: 2025-10-29T01:58:16.828Z */
+/* Updated: 2025-10-29T01:36:12.786Z */
+/* Updated: 2025-10-29T01:05:44.794Z */
+/* Updated: 2025-10-29T01:05:41.068Z */
+/* Updated: 2025-10-29T00:04:02.773Z */
+/* Updated: 2025-10-28T23:49:42.710Z */
+/* Updated: 2025-10-28T23:19:30.053Z */
+/* Updated: 2025-10-28T23:02:09.244Z */
+/* Updated: 2025-10-28T22:44:46.044Z */
+/* Updated: 2025-10-28T22:39:32.076Z */
+/* Updated: 2025-10-28T22:34:13.585Z */
+/* Updated: 2025-10-28T22:09:15.477Z */
+/* Updated: 2025-10-28T03:05:32.029Z */
+/* Updated: 2025-10-28T02:28:23.581Z */
+/* Updated: 2025-10-28T02:17:16.965Z */
+/* Updated: 2025-10-28T02:11:36.942Z */
+/* Updated: 2025-10-28T02:07:44.470Z */
+/* Updated: 2025-10-28T02:06:39.355Z */
+/* Updated: 2025-10-28T01:54:03.780Z */
+/* Updated: 2025-10-28T01:40:50.604Z */
+/* Updated: 2025-10-28T01:38:54.884Z */
+/* Updated: 2025-10-28T01:13:30.493Z */
+/* Updated: 2025-10-28T00:36:25.420Z */
+/* Updated: 2025-10-27T23:43:26.562Z */
+/* Updated: 2025-10-27T23:37:00.564Z */
+/* Updated: 2025-10-27T23:32:31.490Z */
+/* Updated: 2025-10-27T23:16:16.618Z */
+/* Updated: 2025-10-27T23:13:08.013Z */
+/* Updated: 2025-10-27T23:06:56.361Z */
+/* Updated: 2025-10-27T22:26:34.014Z */
+/* Updated: 2025-10-27T22:12:10.894Z */
+/* Updated: 2025-10-27T22:10:25.139Z */
+/* Updated: 2025-10-27T22:09:53.295Z */
+/* Updated: 2025-10-27T11:07:54.515Z */
+/* Updated: 2025-10-27T11:03:00.555Z */
+/* Updated: 2025-10-27T10:57:38.774Z */
+/* Updated: 2025-10-27T10:46:17.188Z */
+/* Updated: 2025-10-27T10:39:52.879Z */
+/* Updated: 2025-10-27T10:32:13.666Z */
+/* Updated: 2025-10-27T05:13:27.723Z */
+/* Updated: 2025-10-27T04:50:36.297Z */
+/* Updated: 2025-10-27T04:41:04.657Z */
+/* Updated: 2025-10-27T04:39:59.452Z */
+/* Updated: 2025-10-27T04:38:22.203Z */
+/* Updated: 2025-10-27T04:36:26.145Z */
+/* Updated: 2025-10-27T04:31:02.231Z */
+/* Updated: 2025-10-27T04:25:32.411Z */
+/* Updated: 2025-10-27T04:13:11.705Z */
+/* Updated: 2025-10-27T04:09:26.273Z */
+/* Updated: 2025-10-27T04:09:20.144Z */
+/* Updated: 2025-10-27T04:08:01.851Z */
+/* Updated: 2025-10-27T04:07:14.048Z */
+/* Updated: 2025-10-27T03:50:33.160Z */
+/* Updated: 2025-10-27T03:50:20.899Z */
+/* Updated: 2025-10-27T03:14:28.089Z */
+/* Updated: 2025-10-27T03:05:07.639Z */
+/* Updated: 2025-10-27T02:54:18.625Z */
+/* Updated: 2025-10-27T02:41:03.453Z */
+/* Updated: 2025-10-27T02:24:07.419Z */
+/* Updated: 2025-10-27T00:56:40.486Z */
+/* Updated: 2025-10-27T00:39:22.880Z */
+/* Updated: 2025-10-26T21:35:17.177Z */
+/* Updated: 2025-10-26T20:52:24.706Z */
+/* Updated: 2025-10-26T19:20:51.349Z */
+/* Updated: 2025-10-26T19:08:25.317Z */
+/* Updated: 2025-10-26T19:07:59.096Z */
+/* Updated: 2025-10-26T07:09:31.544Z */
+/* Updated: 2025-10-26T06:53:40.950Z */
+/* Updated: 2025-10-26T06:37:30.690Z */
+/* Updated: 2025-10-26T06:21:40.303Z */
+/* Updated: 2025-10-26T06:05:39.381Z */
+/* Updated: 2025-10-26T05:50:49.606Z */
+/* Updated: 2025-10-26T05:34:39.248Z */
+/* Updated: 2025-10-26T05:18:48.890Z */
+/* Updated: 2025-10-26T01:02:17.231Z */
+/* Updated: 2025-10-26T01:01:57.324Z */
+/* Updated: 2025-10-26T00:44:45.178Z */
+/* Updated: 2025-10-26T00:41:50.133Z */
+/* Updated: 2025-10-26T00:40:17.506Z */
+/* Updated: 2025-10-26T00:40:08.725Z */
+/* Updated: 2025-10-26T00:40:02.993Z */
+/* Updated: 2025-10-26T00:39:57.973Z */
+/* Updated: 2025-10-26T00:37:09.930Z */
+/* Updated: 2025-10-26T00:34:08.905Z */
+/* Updated: 2025-10-26T00:30:07.640Z */
+/* Updated: 2025-10-26T00:27:01.207Z */
+/* Updated: 2025-10-26T00:26:41.243Z */
+/* Updated: 2025-10-26T00:25:29.537Z */
+/* Updated: 2025-10-26T00:14:57.243Z */
+/* Updated: 2025-10-26T00:04:52.162Z */
+/* Updated: 2025-10-25T23:32:13.911Z */
+/* Updated: 2025-10-25T23:30:45.734Z */
+/* Updated: 2025-10-25T23:28:13.410Z */
+/* Updated: 2025-10-25T23:10:30.224Z */
+/* Updated: 2025-10-25T15:16:57.368Z */
+/* Updated: 2025-10-24T20:47:39.749Z */
+/* Updated: 2025-10-24T20:11:15.605Z */
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --gradient-1: linear-gradient(135deg, #0F172A 0%, #134E4A 50%, #0D9488 100%);
+  --gradient-2: linear-gradient(135deg, #2DD4BF 0%, #0D9488 100%);
+  --gradient-3: linear-gradient(135deg, #0D9488 0%, #14B8A6 100%);
+  --gradient-4: linear-gradient(135deg, #2DD4BF 0%, #99F6E4 100%);
+  --brand-dark: #0F172A;
+  --brand-navy: #134E4A;
+  --brand-teal: #0D9488;
+  --brand-teal-light: #14B8A6;
+  --brand-teal-bright: #2DD4BF;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(99, 102, 241, 0.6);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s linear infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 4s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.8s ease-out both;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 1s ease-out both;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.6s ease-out both;
+  }
+
+  .gradient-text {
+    background: var(--gradient-1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-border {
+    position: relative;
+    background: var(--color-card);
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(13,148,136,0.4) 0%, rgba(45,212,191,0.15) 50%, rgba(13,148,136,0.05) 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 1;
+    pointer-events: none;
+  }
+
+  .gradient-border:hover::before {
+    background: linear-gradient(135deg, rgba(13,148,136,0.7) 0%, rgba(45,212,191,0.4) 50%, rgba(13,148,136,0.2) 100%);
+  }
+
+  /* Glass card effect for dashboard */
+  .glass-card {
+    background: rgba(255,255,255,0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+
+  .dark .glass-card {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* Glow on teal elements */
+  .teal-glow {
+    box-shadow: 0 0 20px rgba(13,148,136,0.3), 0 0 40px rgba(13,148,136,0.1);
+  }
+
+  .teal-glow-sm {
+    box-shadow: 0 0 10px rgba(13,148,136,0.25);
+  }
+
+  /* Ambient dot grid background for dashboard */
+  .dot-grid {
+    background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Subtle noise texture overlay */
+  .noise-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    opacity: 0.4;
+    border-radius: inherit;
+  }
+
+  /* Stat card number */
+  .stat-value {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(13,148,136,0.4); }
+    50% { box-shadow: 0 0 20px rgba(13,148,136,0.8), 0 0 40px rgba(45,212,191,0.3); }
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 2.5s ease-in-out infinite;
+  }
+
+  @keyframes badge-pop {
+    0% { transform: scale(0.8); opacity: 0; }
+    60% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .animate-badge-pop {
+    animation: badge-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @keyframes shimmer-sweep {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .shimmer-sweep {
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: shimmer-sweep 2s linear infinite;
+  }
+
+  /* Vapi AI Widget Mobile Responsiveness */
+  vapi-widget {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  vapi-widget * {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Constrain the chat dialog on all screen sizes */
+  vapi-widget [role="dialog"],
+  vapi-widget iframe[style*="position: fixed"],
+  vapi-widget > div > div[style*="position: fixed"] {
+    max-width: min(400px, calc(100vw - 32px)) !important;
+    max-height: min(600px, calc(100vh - 100px)) !important;
+    width: min(400px, calc(100vw - 32px)) !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  /* Ensure chat popup content stays within bounds */
+  vapi-widget [role="dialog"] > *,
+  vapi-widget iframe {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    box-sizing: border-box !important;
+    overflow: auto !important;
+  }
+
+  @media (max-width: 768px) {
+    /* Mobile-specific adjustments */
+    vapi-widget [role="dialog"],
+    vapi-widget iframe[style*="position: fixed"],
+    vapi-widget > div > div[style*="position: fixed"] {
+      max-width: calc(100vw - 20px) !important;
+      width: calc(100vw - 20px) !important;
+      max-height: calc(100vh - 80px) !important;
+      left: 10px !important;
+      right: 10px !important;
+      bottom: 10px !important;
+      margin: 0 auto !important;
+      transform: none !important;
+    }
+  }
+}
+
+/* Hide Next.js error overlay portal */
+nextjs-portal {
+  display: none !important;
+}
