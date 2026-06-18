@@ -16,7 +16,7 @@ export default function AIWebsiteChatbotPage() {
       <CursorGradient />
       <Header />
       
-      <main className="flex-1 pt-16">
+      <main className="marketing-page flex-1">
         {/* Hero Section */}
         <section className="relative overflow-hidden py-20 md:py-32">
           <div className="absolute inset-0 bg-gradient-to-br from-[#388087]/10 via-transparent to-[#6FB3B8]/10 animate-pulse-slow" />

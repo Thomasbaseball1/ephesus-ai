@@ -63,7 +63,7 @@ export default function ContactPage() {
       <CursorGradient />
       <Header />
       
-      <main className="flex-1 pt-16">
+      <main className="marketing-page flex-1">
 
         {/* Schedule a Consultation — top section */}
         <section className="relative overflow-hidden py-20 md:py-28 bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A]">

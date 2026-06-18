@@ -72,6 +72,7 @@ export default function ResetPasswordWithToken() {
             alt="Ephesus AI Solutions"
             width={480}
             height={120}
+            priority
             className="h-36 w-auto mx-auto dark:invert"
           />
           <h1 className="text-xl font-bold text-white mt-4">

@@ -267,7 +267,7 @@ export default function DemoPage() {
 
       <Header />
 
-      <main className="flex-1 pt-16">
+      <main className="marketing-page flex-1">
 
         {/* Hero */}
         <section className="relative overflow-hidden py-16 md:py-20 border-b border-[#0D9488]/20 bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A]">

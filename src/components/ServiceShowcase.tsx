@@ -30,7 +30,7 @@ function VoicePanel({ started }: { started: boolean }) {
 
   useEffect(() => {
     if (!started) return;
-    const ringTimeout = setTimeout(() => setIsRinging(false), 1500);
+    const ringTimeout = setTimeout(() => setIsRinging(false), 850);
     return () => clearTimeout(ringTimeout);
   }, [started]);
 
@@ -38,7 +38,7 @@ function VoicePanel({ started }: { started: boolean }) {
     if (!started) return;
     if (isRinging) return;
     if (visibleCount >= CALL_LINES.length) return;
-    timerRef.current = setTimeout(() => setVisibleCount((c) => c + 1), 1400);
+    timerRef.current = setTimeout(() => setVisibleCount((c) => c + 1), 900);
     return () => { if (timerRef.current) clearTimeout(timerRef.current); };
   }, [visibleCount, isRinging, started]);
 
@@ -55,7 +55,7 @@ function VoicePanel({ started }: { started: boolean }) {
           </div>
           <div className="text-xs text-white/50">{isRinging ? "AI Receptionist answering" : "00:42"}</div>
         </div>
-        <div className={`ml-auto w-2.5 h-2.5 rounded-full ${isRinging ? "bg-yellow-400 animate-pulse" : visibleCount >= CALL_LINES.length ? "bg-blue-400" : "bg-green-400"}`} />
+        <div className={`ml-auto w-2.5 h-2.5 rounded-full ${isRinging ? "bg-amber-300 animate-pulse" : "bg-[#77ead6]"}`} />
       </div>
 
       {/* Transcript */}
@@ -106,9 +106,9 @@ function EmailPanel({ started }: { started: boolean }) {
   useEffect(() => {
     if (!started) return;
     const seq: [EmailStep, number][] = [
-      ["arriving", 800],
-      ["analyzing", 1800],
-      ["drafting", 3500],
+      ["arriving", 650],
+      ["analyzing", 950],
+      ["drafting", 1700],
       ["sent", 0],
     ];
     let t: NodeJS.Timeout;
@@ -129,7 +129,7 @@ function EmailPanel({ started }: { started: boolean }) {
   useEffect(() => {
     if (step !== "drafting") return;
     if (draftIndex >= DRAFT_TEXT.length) return;
-    const t = setTimeout(() => setDraftIndex((d) => d + 1), 22);
+    const t = setTimeout(() => setDraftIndex((d) => d + 2), 18);
     return () => clearTimeout(t);
   }, [step, draftIndex]);
 
@@ -219,12 +219,12 @@ function ChatbotPanel({ started }: { started: boolean }) {
         setTyping(false);
         setMessages((m) => [...m, line]);
         setStep((s) => s + 1);
-      }, 1600);
+      }, 1050);
     } else {
       ref.current = setTimeout(() => {
         setMessages((m) => [...m, line]);
         setStep((s) => s + 1);
-      }, step === 0 ? 800 : 1200);
+      }, step === 0 ? 650 : 850);
     }
     return () => { if (ref.current) clearTimeout(ref.current); };
   }, [step, started]);
@@ -478,45 +478,35 @@ function InstagramPanel({ started }: { started: boolean }) {
 }
 
 /* ─── Main Component ─── */
-const TABS: { id: TabId; label: string; icon: typeof PhoneCall; color: string; gradient: string; desc: string }[] = [
+const TABS: { id: TabId; label: string; icon: typeof PhoneCall; desc: string }[] = [
   {
     id: "voice",
     label: "Voice Receptionist",
     icon: PhoneCall,
-    color: "from-[#0D9488] to-[#14B8A6]",
-    gradient: "from-[#0D9488]/10 to-[#14B8A6]/10",
     desc: "AI picks up every call, handles the conversation, and books appointments — automatically.",
   },
   {
     id: "email",
     label: "Email Automation",
     icon: Mail,
-    color: "from-[#2DD4BF] to-[#0D9488]",
-    gradient: "from-[#2DD4BF]/10 to-[#0D9488]/10",
     desc: "Inbound emails are read, categorized, and replied to by AI — in seconds, not hours.",
   },
   {
     id: "chatbot",
     label: "Website Chatbot",
     icon: MessageSquare,
-    color: "from-[#14B8A6] to-[#5EEAD4]",
-    gradient: "from-[#14B8A6]/10 to-[#5EEAD4]/10",
     desc: "Visitors get instant answers and warm handoffs — your site converts 24/7 without you.",
   },
   {
     id: "instagram",
     label: "Instagram Suite",
     icon: Instagram,
-    color: "from-[#E1306C] to-[#833AB4]",
-    gradient: "from-[#E1306C]/10 to-[#833AB4]/10",
     desc: "Every new follower gets a personalized welcome DM the instant they follow — automatically.",
   },
   {
     id: "revival",
     label: "Lead Revival",
     icon: RefreshCw,
-    color: "from-[#2DD4BF] to-[#0F766E]",
-    gradient: "from-[#2DD4BF]/10 to-[#0F766E]/10",
     desc: "Cold leads get re-engaged with personalized campaigns that fire on autopilot.",
   },
 ];
@@ -595,14 +585,14 @@ export default function ServiceShowcase() {
 
         {/* Tab buttons */}
         <div className="flex flex-wrap justify-center gap-3 mb-10">
-          {TABS.map(({ id, label, icon: Icon, color }) => (
+          {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => handleTabClick(id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-300 border cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 border cursor-pointer ${
                 active === id
-                  ? `bg-gradient-to-r ${color} text-white border-transparent shadow-lg`
-                  : "bg-white/5 text-white/60 border-white/10 hover:bg-white/10 hover:text-white"
+                  ? "border-[#77ead6]/30 bg-[#77ead6]/12 text-[#9af3e3] shadow-[0_10px_30px_rgba(94,234,212,0.08)]"
+                  : "border-white/10 bg-white/[0.025] text-white/50 hover:bg-white/[0.055] hover:text-white"
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -615,8 +605,8 @@ export default function ServiceShowcase() {
         <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
           {/* Left: description */}
           <div className="flex flex-col justify-center space-y-6">
-            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${activeTab.color} flex items-center justify-center shadow-xl`}>
-              <activeTab.icon className="w-7 h-7 text-white" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[#77ead6]/20 bg-[#77ead6]/10 shadow-[0_16px_40px_rgba(94,234,212,0.1)]">
+              <activeTab.icon className="w-7 h-7 text-[#8ff5e3]" />
             </div>
             <div>
               <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">{activeTab.label}</h3>
@@ -633,7 +623,7 @@ export default function ServiceShowcase() {
                 <li key={f} className="flex items-center gap-2 text-sm text-white/70"><CheckCircle className="w-4 h-4 text-[#14B8A6] flex-shrink-0" />{f}</li>
               ))}
               {active === "instagram" && ["Fires instantly when someone follows your account", "Personalized DMs — not generic copy-paste", "Runs 24/7 via n8n workflow integration", "Track reply rates and demo bookings live"].map((f) => (
-                <li key={f} className="flex items-center gap-2 text-sm text-white/70"><CheckCircle className="w-4 h-4 flex-shrink-0" style={{ color: '#E1306C' }} />{f}</li>
+                <li key={f} className="flex items-center gap-2 text-sm text-white/70"><CheckCircle className="w-4 h-4 flex-shrink-0 text-[#77ead6]" />{f}</li>
               ))}
               {active === "revival" && ["Sends personalized drip sequences automatically", "Tracks email opens and link clicks in real time", "Fires follow-ups when leads re-engage", "Surfaces replies directly to your inbox"].map((f) => (
                 <li key={f} className="flex items-center gap-2 text-sm text-white/70"><CheckCircle className="w-4 h-4 text-[#2DD4BF] flex-shrink-0" />{f}</li>
@@ -642,7 +632,7 @@ export default function ServiceShowcase() {
           </div>
 
           {/* Right: animated panel */}
-          <div className={`h-[480px] bg-gradient-to-br ${activeTab.gradient} border border-white/10 rounded-2xl overflow-hidden shadow-2xl`} key={active}>
+          <div className="showcase-panel h-[520px] overflow-hidden rounded-[26px]" key={active}>
             {active === "voice"     && <VoicePanel     started={startedTabs.has("voice")}     />}
             {active === "email"     && <EmailPanel     started={startedTabs.has("email")}     />}
             {active === "chatbot"   && <ChatbotPanel   started={startedTabs.has("chatbot")}   />}

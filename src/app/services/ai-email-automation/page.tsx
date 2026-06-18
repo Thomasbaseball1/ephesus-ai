@@ -14,7 +14,7 @@ export default function AIEmailAutomationPage() {
     <div className="min-h-screen flex flex-col">
       <Header />
 
-      <main className="flex-1 pt-16">
+      <main className="marketing-page flex-1">
 
         {/* Hero */}
         <section className="relative overflow-hidden py-24 md:py-36 bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A]">

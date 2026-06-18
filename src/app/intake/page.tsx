@@ -794,7 +794,7 @@ export default function IntakePage() {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
-        <main className="flex-1 pt-16 flex items-center justify-center">
+        <main className="marketing-page flex-1 pt-24 flex items-center justify-center">
           <div className="container mx-auto px-6 py-20 max-w-lg text-center space-y-6">
             <div className="mx-auto w-20 h-20 rounded-2xl bg-gradient-to-br from-[#0D9488] to-[#2DD4BF] flex items-center justify-center shadow-2xl shadow-[#0D9488]/30">
               <CheckCircle className="w-10 h-10 text-white" />
@@ -819,7 +819,7 @@ export default function IntakePage() {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
-      <main className="flex-1 pt-16">
+      <main className="marketing-page flex-1">
 
         {/* Hero */}
         <section className="relative overflow-hidden py-14 bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A]">

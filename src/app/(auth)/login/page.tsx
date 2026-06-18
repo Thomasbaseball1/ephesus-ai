@@ -72,6 +72,7 @@ function LoginForm() {
             alt="Ephesus AI Solutions"
             width={480}
             height={120}
+            priority
             className="h-44 w-auto mx-auto dark:invert"
           />
         </Link>

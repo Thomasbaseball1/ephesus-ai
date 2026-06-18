@@ -22,6 +22,7 @@ export default function FadeIn({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    let settleTimer: ReturnType<typeof setTimeout> | undefined;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion) {
@@ -34,7 +35,11 @@ export default function FadeIn({
       el.style.transition = `opacity ${duration}ms ease, transform ${duration}ms ease`;
       el.style.transitionDelay = `${delay}ms`;
       el.style.opacity = "1";
-      el.style.transform = "translateY(0px)";
+      el.style.transform = "none";
+      settleTimer = setTimeout(() => {
+        el.style.transition = "none";
+        el.style.transitionDelay = "0ms";
+      }, duration + delay + 80);
     };
 
     const observer = new IntersectionObserver(
@@ -48,7 +53,10 @@ export default function FadeIn({
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (settleTimer) clearTimeout(settleTimer);
+    };
   }, [delay, duration]);
 
   return (

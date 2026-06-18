@@ -305,7 +305,7 @@ export default function InstagramAutomationPage() {
       `}</style>
       <Header />
 
-      <main className="flex-1 pt-16">
+      <main className="marketing-page flex-1">
 
         {/* Hero */}
         <section className="relative overflow-hidden py-24 md:py-36"
