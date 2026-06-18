@@ -7,11 +7,25 @@ test('uses Turso when both production credentials are present', () => {
   assert.deepEqual(
     resolveDatabaseConfig({
       NODE_ENV: 'production',
-      TURSO_CONNECTION_URL: 'libsql://example.turso.io',
+      TURSO_DATABASE_URL: 'libsql://example.turso.io',
       TURSO_AUTH_TOKEN: 'token',
     }),
     {
       url: 'libsql://example.turso.io',
+      authToken: 'token',
+    }
+  );
+});
+
+test('supports the legacy Orchids Turso URL variable', () => {
+  assert.deepEqual(
+    resolveDatabaseConfig({
+      NODE_ENV: 'production',
+      TURSO_CONNECTION_URL: 'libsql://legacy-example.turso.io',
+      TURSO_AUTH_TOKEN: 'token',
+    }),
+    {
+      url: 'libsql://legacy-example.turso.io',
       authToken: 'token',
     }
   );
@@ -37,7 +51,7 @@ test('rejects partially configured Turso credentials', () => {
     () =>
       resolveDatabaseConfig({
         NODE_ENV: 'production',
-        TURSO_CONNECTION_URL: 'libsql://example.turso.io',
+        TURSO_DATABASE_URL: 'libsql://example.turso.io',
       }),
     /must be configured together/
   );

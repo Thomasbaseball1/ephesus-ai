@@ -16,8 +16,11 @@ the project root. That file is intentionally ignored by Git.
 
 Production requires both of these environment variables:
 
-- `TURSO_CONNECTION_URL`
+- `TURSO_DATABASE_URL`
 - `TURSO_AUTH_TOKEN`
+
+`TURSO_CONNECTION_URL` remains supported for compatibility with the previous
+Orchids deployment.
 
 The application fails fast if either value is missing. It never falls back to
 the bundled local SQLite database in production because serverless files are
