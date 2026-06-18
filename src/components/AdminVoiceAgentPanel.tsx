@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import {
-  Phone, ChevronDown, CheckCircle, Loader2, RefreshCw, Trash2, Plus
+  Phone, ChevronDown, CheckCircle, Loader2, RefreshCw, Trash2, Plus, Tag, ArrowRight
 } from 'lucide-react';
 
 interface Assistant {
@@ -196,40 +196,83 @@ export function AdminVoiceAgentPanel({ userId, userName }: Props) {
 
       {open && (
         <div className="admin-assignment-form">
+          <div className="admin-assignment-form__header">
+            <div>
+              <p>Receptionist assignment</p>
+              <span>Choose the voice agent and the name shown in this client&apos;s workspace.</span>
+            </div>
+            <span className="admin-assignment-form__step">
+              {activeAssignments.length > 0 ? 'Replace active' : 'New assignment'}
+            </span>
+          </div>
+
           {loadingAssistants ? (
-            <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Loader2 className="w-3 h-3 animate-spin" /> Loading assistants...</p>
+            <div className="admin-assignment-form__loading">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <div>
+                <p>Loading voice agents</p>
+                <span>Fetching your available Vapi assistants...</span>
+              </div>
+            </div>
           ) : (
             <>
-              <div className="relative">
-                <Phone className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                <select
-                  value={selectedId}
-                  onChange={e => setSelectedId(e.target.value)}
-                  className="admin-select w-full pl-8 pr-3"
-                >
-                  <option value="">Select an assistant...</option>
-                  {assistants.map(a => (
-                    <option key={a.id} value={a.id}>
-                      {a.name || a.id} {a.model?.model ? `(${a.model.model})` : ''}
-                    </option>
-                  ))}
-                </select>
+              <div className="admin-assignment-form__fields">
+                <label className="admin-assignment-field">
+                  <span className="admin-assignment-field__label">
+                    <Phone />
+                    Voice assistant
+                    <i>Required</i>
+                  </span>
+                  <div className="admin-select-wrap">
+                    <Phone />
+                    <select
+                      value={selectedId}
+                      onChange={e => setSelectedId(e.target.value)}
+                      className="admin-select"
+                    >
+                      <option value="">Select an assistant...</option>
+                      {assistants.map(a => (
+                        <option key={a.id} value={a.id}>
+                          {a.name || a.id} {a.model?.model ? `(${a.model.model})` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <small>{assistants.length} available from your Vapi workspace</small>
+                </label>
+
+                <label className="admin-assignment-field">
+                  <span className="admin-assignment-field__label">
+                    <Tag />
+                    Display label
+                    <i>Optional</i>
+                  </span>
+                  <input
+                    value={label}
+                    onChange={e => setLabel(e.target.value)}
+                    placeholder="e.g. Main Receptionist"
+                    className="admin-input"
+                  />
+                  <small>Leave blank to use the assistant&apos;s name</small>
+                </label>
               </div>
-              <input
-                value={label}
-                onChange={e => setLabel(e.target.value)}
-                placeholder="Display label (e.g. Main Receptionist)"
-                className="admin-input w-full px-3"
-              />
-              <Button
-                size="sm"
-                onClick={handleAssign}
-                disabled={assigning || !selectedId}
-                className="admin-action-button gap-1.5 text-xs h-8"
-              >
-                {assigning ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
-                Assign
-              </Button>
+
+              <div className="admin-assignment-form__footer">
+                <p>
+                  {activeAssignments.length > 0
+                    ? 'This will replace the client\'s current active receptionist.'
+                    : 'The receptionist will appear in the client workspace immediately.'}
+                </p>
+                <Button
+                  onClick={handleAssign}
+                  disabled={assigning || !selectedId}
+                  className="admin-action-button"
+                >
+                  {assigning ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                  Assign receptionist
+                  {!assigning && <ArrowRight className="w-4 h-4" />}
+                </Button>
+              </div>
             </>
           )}
         </div>
