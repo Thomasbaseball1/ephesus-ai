@@ -177,23 +177,23 @@ export default function LiveCounter() {
   const total = counts.voice + counts.email + counts.chat;
 
   return (
-    <section className="relative overflow-hidden py-16 md:py-20 bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A] border-y border-white/10">
+    <section className="dark-panel relative overflow-hidden py-20 md:py-28">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#0D9488_0%,_transparent_70%)] opacity-10 pointer-events-none" />
 
       <div className="container mx-auto px-6 relative">
 
         {/* Header */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-white/70 uppercase tracking-widest mb-4">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
             </span>
             Live — See What Your Business Gains
           </div>
-          <h2 className="text-3xl md:text-5xl font-black text-white">
+          <h2 className="text-4xl font-medium tracking-[-0.045em] text-white md:text-6xl">
             Inquiries Your Business{" "}
-            <span className="bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] bg-clip-text text-transparent">
+            <span className="font-display font-normal italic text-[#8ff5e3]">
               Never Misses
             </span>
           </h2>
@@ -207,7 +207,7 @@ export default function LiveCounter() {
           {/* Left — total + channel breakdown */}
           <div className="space-y-4">
             {/* Big odometer */}
-            <div className="rounded-2xl bg-white/5 border border-white/10 p-6 text-center">
+            <div className="premium-card rounded-3xl p-6 text-center">
               <div className="text-xs uppercase tracking-widest text-white/40 font-semibold mb-3">
                 Total Handled For Your Business
               </div>
@@ -220,7 +220,7 @@ export default function LiveCounter() {
             {CHANNELS.map(({ key, icon: Icon, label, color, bg }) => (
               <div
                 key={key}
-                className="flex items-center gap-4 rounded-xl bg-white/5 border border-white/10 px-5 py-4"
+                className="premium-card flex items-center gap-4 rounded-2xl px-5 py-4"
               >
                 <div className={`w-9 h-9 rounded-lg ${bg} flex items-center justify-center flex-shrink-0`}>
                   <Icon className={`w-4 h-4 ${color}`} />
@@ -234,7 +234,7 @@ export default function LiveCounter() {
           </div>
 
           {/* Right — live activity feed */}
-          <div className="rounded-2xl bg-white/5 border border-white/10 overflow-hidden">
+          <div className="premium-card overflow-hidden rounded-3xl">
             <div className="px-5 py-3 border-b border-white/10 flex items-center gap-2">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />

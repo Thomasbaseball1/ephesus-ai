@@ -564,7 +564,7 @@ export default function ServiceShowcase() {
   const activeTab = TABS.find((t) => t.id === active)!;
 
   return (
-    <section ref={sectionRef} className="bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A] py-20 md:py-32 relative overflow-hidden">
+    <section ref={sectionRef} className="dark-panel relative overflow-hidden py-24 md:py-32">
       <style>{`
         @keyframes fadeSlideIn {
           from { opacity: 0; transform: translateY(8px); }
@@ -578,13 +578,13 @@ export default function ServiceShowcase() {
       <div className="container mx-auto px-6 relative">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium backdrop-blur-sm border border-white/20 mb-5">
+          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55 backdrop-blur-sm">
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             See It In Action
           </div>
-          <h2 className="text-3xl md:text-5xl font-bold text-white">
+          <h2 className="text-4xl font-medium tracking-[-0.045em] text-white md:text-6xl">
             Watch the AI{" "}
-            <span className="bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] bg-clip-text text-transparent">
+            <span className="font-display font-normal italic text-[#8ff5e3]">
               Work in Real Time
             </span>
           </h2>

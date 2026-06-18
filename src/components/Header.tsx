@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import Image from "next/image";
 import { Menu, X, LayoutDashboard, LogOut, User } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import CalendlyButton from "@/components/CalendlyButton";
@@ -50,53 +49,52 @@ export default function Header() {
   ];
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
-      <nav className="container mx-auto px-6 h-20">
-        <div className="flex items-center justify-between h-full">
-          <Link href="/" className="block group leading-none">
-            <Image
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/document-uploads/Ephisus-logo-1761437704742.png?width=8000&height=8000&resize=contain"
-              alt="Ephesus AI Solutions Logo"
-              width={440}
-              height={100}
-              className="h-40 w-auto block transition-transform group-hover:scale-105 duration-300 dark:invert"
-            />
+    <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5">
+      <nav className="mx-auto h-16 max-w-7xl rounded-2xl border border-white/[0.09] bg-[#070b0b]/80 px-4 shadow-[0_18px_60px_rgba(0,0,0,0.28)] backdrop-blur-2xl sm:px-5">
+        <div className="flex h-full items-center justify-between">
+          <Link href="/" className="group flex items-center gap-3 leading-none" aria-label="Ephesus AI home">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#5eead4]/25 bg-[#5eead4]/10 text-sm font-bold text-[#8ff5e3] transition-colors duration-200 group-hover:bg-[#5eead4]/15">
+              E
+            </span>
+            <span className="flex flex-col">
+              <span className="text-[15px] font-bold tracking-[0.17em] text-white">EPHESUS</span>
+              <span className="mt-1 text-[8px] font-medium tracking-[0.3em] text-white/45">AI SOLUTIONS</span>
+            </span>
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden items-center gap-1 lg:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`text-sm font-medium transition-all duration-300 relative group ${
-                  isActive(link.href) ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                className={`relative rounded-lg px-3 py-2 text-[13px] font-medium transition-colors duration-200 ${
+                  isActive(link.href) ? "bg-white/[0.07] text-white" : "text-white/55 hover:bg-white/[0.04] hover:text-white"
                 }`}
               >
                 {link.label}
-                {isActive(link.href) && (
-                  <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-gradient-to-r from-[#0D9488] to-[#2DD4BF]" />
-                )}
               </Link>
             ))}
           </div>
 
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden items-center gap-2 lg:flex">
             {session ? (
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-secondary/50 transition-colors cursor-pointer"
+                  className="flex cursor-pointer items-center gap-2 rounded-xl px-2.5 py-2 text-white transition-colors hover:bg-white/[0.06]"
+                  aria-expanded={userMenuOpen}
+                  aria-label="Open account menu"
                 >
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#0D9488] to-[#2DD4BF] flex items-center justify-center text-white text-xs font-bold">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#5eead4] text-xs font-bold text-[#05201b]">
                     {initials}
                   </div>
-                  <span className="text-sm font-medium max-w-[120px] truncate">
+                  <span className="max-w-[108px] truncate text-sm font-medium">
                     {session.user.name?.split(' ')[0] || session.user.email}
                   </span>
                 </button>
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-1 w-44 rounded-xl bg-background border border-border shadow-xl py-1 z-50">
+                  <div className="absolute right-0 z-50 mt-2 w-44 rounded-xl border border-white/10 bg-[#0b1110] py-1 shadow-2xl">
                     <Link
                       href="/dashboard"
                       onClick={() => setUserMenuOpen(false)}
@@ -124,13 +122,13 @@ export default function Header() {
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg border border-[#0D9488] text-[#0D9488] hover:bg-[#0D9488]/10 transition-all duration-300 cursor-pointer"
+                className="inline-flex cursor-pointer items-center justify-center rounded-lg px-3 py-2 text-sm font-medium text-white/65 transition-colors duration-200 hover:bg-white/[0.05] hover:text-white"
               >
                 Client Portal
               </Link>
             )}
             <CalendlyButton>
-              <span className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-lg bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] text-white hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 cursor-pointer">
+              <span className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-[#77ead6] px-4 py-2 text-sm font-semibold text-[#06211d] shadow-[0_8px_28px_rgba(94,234,212,0.16)] transition-colors duration-200 hover:bg-[#9af3e3]">
                 Get Started
               </span>
             </CalendlyButton>
@@ -139,8 +137,9 @@ export default function Header() {
           {/* Mobile Hamburger Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-secondary/50 transition-colors"
+            className="rounded-lg p-2 text-white transition-colors hover:bg-white/[0.06] lg:hidden"
             aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (
               <X className="w-6 h-6" />
@@ -153,17 +152,17 @@ export default function Header() {
 
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-background/95 backdrop-blur-md border-b border-border">
-          <div className="container mx-auto px-6 py-4 space-y-4">
+        <div className="mx-auto mt-2 max-w-7xl rounded-2xl border border-white/10 bg-[#070b0b]/95 p-3 shadow-2xl backdrop-blur-2xl lg:hidden">
+          <div className="space-y-1">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block py-3 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
+                className={`block rounded-xl px-4 py-3 text-sm font-medium transition-colors duration-200 ${
                   isActive(link.href)
-                    ? "bg-gradient-to-r from-[#388087]/10 to-[#6FB3B8]/10 text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                    ? "bg-[#5eead4]/10 text-[#8ff5e3]"
+                    : "text-white/60 hover:bg-white/[0.05] hover:text-white"
                 }`}
               >
                 {link.label}
@@ -174,13 +173,13 @@ export default function Header() {
                 <Link
                   href="/dashboard"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 py-3 px-4 rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all duration-300"
+                  className="flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-white/60 transition-colors hover:bg-white/[0.05] hover:text-white"
                 >
                   <LayoutDashboard className="w-4 h-4" /> Dashboard
                 </Link>
                 <button
                   onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
-                  className="flex items-center gap-2 w-full py-3 px-4 rounded-lg text-sm font-medium text-red-500 hover:bg-secondary/50 transition-all duration-300 cursor-pointer"
+                  className="flex w-full cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium text-red-400 transition-colors hover:bg-white/[0.05]"
                 >
                   <LogOut className="w-4 h-4" /> Sign Out
                 </button>
@@ -189,7 +188,7 @@ export default function Header() {
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full text-center py-3 px-4 text-sm font-medium rounded-lg border border-[#0D9488] text-[#0D9488] hover:bg-[#0D9488]/10 transition-all duration-300"
+                className="block w-full rounded-xl px-4 py-3 text-center text-sm font-medium text-white/65 transition-colors hover:bg-white/[0.05] hover:text-white"
               >
                 Client Portal
               </Link>
@@ -197,7 +196,7 @@ export default function Header() {
             <CalendlyButton>
               <span
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full text-center py-3 px-4 text-sm font-medium rounded-lg bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] text-white hover:opacity-90 transition-all duration-300 shadow-lg cursor-pointer"
+                className="mt-2 block w-full cursor-pointer rounded-xl bg-[#77ead6] px-4 py-3 text-center text-sm font-semibold text-[#06211d] transition-colors hover:bg-[#9af3e3]"
               >
                 Get Started
               </span>

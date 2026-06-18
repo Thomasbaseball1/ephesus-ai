@@ -1,23 +1,26 @@
 import Link from "next/link";
-import { Brain, Mail, Linkedin, Twitter } from "lucide-react";
+import { Mail, Linkedin, Twitter } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-border bg-background">
-      <div className="container mx-auto px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Brain className="w-5 h-5" />
-              <span className="font-semibold">Ephesus AI Solutions</span>
+    <footer className="border-t border-white/[0.08] bg-[#050807]">
+      <div className="mx-auto max-w-7xl px-6 py-16 lg:px-8">
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+          <div className="space-y-5">
+            <div className="flex items-center gap-3">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#5eead4]/25 bg-[#5eead4]/10 text-sm font-bold text-[#8ff5e3]">E</span>
+              <span className="flex flex-col leading-none">
+                <span className="text-[15px] font-bold tracking-[0.17em] text-white">EPHESUS</span>
+                <span className="mt-1 text-[8px] tracking-[0.3em] text-white/40">AI SOLUTIONS</span>
+              </span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Your all-in-one AI communications suite — inbound calls, emails, website chat, and lead revival campaigns, all on autopilot.
+            <p className="max-w-xs text-sm leading-6 text-white/40">
+              Your all-in-one AI communications suite &mdash; inbound calls, emails, website chat, and lead revival campaigns, all on autopilot.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Company</h3>
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">Company</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -53,7 +56,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Services</h3>
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">Services</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/intake" className="text-muted-foreground hover:text-foreground transition-colors">
@@ -104,7 +107,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h3 className="font-semibold mb-4">Connect</h3>
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-white/70">Connect</h3>
             <div className="flex gap-4">
               <Link href="/contact" className="text-muted-foreground hover:text-foreground transition-colors">
                 <Mail className="w-5 h-5" />
@@ -119,7 +122,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
+        <div className="mt-14 border-t border-white/[0.08] pt-7 text-xs text-white/30">
           <p>&copy; {new Date().getFullYear()} Ephesus AI Solutions. All rights reserved.</p>
         </div>
       </div>

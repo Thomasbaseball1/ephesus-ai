@@ -22,15 +22,33 @@ export default function FadeIn({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    // Small rAF ensures the browser has painted the initial opacity:0 state
-    // before we start the transition — prevents any same-frame jumps
-    const raf = requestAnimationFrame(() => {
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) {
+      el.style.opacity = "1";
+      el.style.transform = "none";
+      return;
+    }
+
+    const reveal = () => {
       el.style.transition = `opacity ${duration}ms ease, transform ${duration}ms ease`;
       el.style.transitionDelay = `${delay}ms`;
       el.style.opacity = "1";
       el.style.transform = "translateY(0px)";
-    });
-    return () => cancelAnimationFrame(raf);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          reveal();
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px" },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
   }, [delay, duration]);
 
   return (

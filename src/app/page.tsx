@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ArrowRight, Brain, Zap, MessageSquare, ClipboardList, PhoneCall, Mail, Shield, CheckCircle, Sparkles, RefreshCw, TrendingUp, Instagram, Users, Heart } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import CursorGradient from "@/components/CursorGradient";
 import CalendlyButton from "@/components/CalendlyButton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -12,6 +11,8 @@ import { VapiDemo } from "@/components/VapiDemo";
 import LiveCounter from "@/components/LiveCounter";
 import ServiceShowcase from "@/components/ServiceShowcase";
 import FadeIn from "@/components/FadeIn";
+import HeroControlRoom from "@/components/HeroControlRoom";
+import DigitalLoomBackground from "@/components/ui/digital-loom-background";
 import Script from "next/script";
 
 export default function Home() {
@@ -56,87 +57,94 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CursorGradient />
       <Header />
 
-      <main className="flex-1 pt-16">
+      <main className="home-main flex-1">
 
         {/* Hero Section */}
-        <section className="relative overflow-hidden py-24 md:py-36 bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A]">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_#0D9488_0%,_transparent_60%)] opacity-20" />
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_#2DD4BF_0%,_transparent_60%)] opacity-15" />
-          <div className="container mx-auto px-6 relative">
-            <div className="max-w-5xl mx-auto text-center space-y-8">
-              <FadeIn delay={0} duration={500}>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white text-sm font-medium backdrop-blur-sm border border-white/20">
-                  <Sparkles className="w-4 h-4 text-[#0D9488]" />
-                  <span>AI-Powered Communications Suite</span>
-                </div>
-              </FadeIn>
+        <section className="relative overflow-hidden border-b border-white/[0.08]">
+          <DigitalLoomBackground className="hero-shell min-h-[780px] bg-[#050909]" threadCount={24}>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_76%_38%,rgba(48,182,159,0.16),transparent_33%),radial-gradient(circle_at_18%_18%,rgba(94,234,212,0.07),transparent_28%)]" />
+            <div className="pointer-events-none absolute inset-0 hero-grid-mask" />
+            <div className="relative mx-auto grid min-h-[780px] max-w-7xl grid-cols-1 items-center gap-14 px-6 pb-20 pt-32 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:px-8 lg:pt-28">
+              <div className="max-w-3xl space-y-8">
+                <FadeIn delay={0} duration={500}>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-[#5eead4]/20 bg-[#5eead4]/[0.07] px-3.5 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#9af3e3] backdrop-blur-sm">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#77ead6] shadow-[0_0_12px_rgba(119,234,214,0.9)]" />
+                    <span>AI-Powered Communications Suite</span>
+                  </div>
+                </FadeIn>
 
-              <FadeIn delay={120} duration={600}>
-                <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white">
-                  Every Inquiry.{" "}
-                  <span className="bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] bg-clip-text text-transparent">
-                    Every Channel.
-                  </span>
-                  <br />Handled.
-                </h1>
-              </FadeIn>
+                <FadeIn delay={100} duration={650}>
+                  <h1 className="max-w-[760px] text-[clamp(3.5rem,7vw,6.5rem)] font-medium leading-[0.92] tracking-[-0.065em] text-white">
+                    Every Inquiry.
+                    <br />
+                    <span className="text-white/46">Every Channel.</span>
+                    <br />
+                    <span className="font-display font-normal italic tracking-[-0.035em] text-[#8ff5e3]">Handled.</span>
+                  </h1>
+                </FadeIn>
 
-              <FadeIn delay={240} duration={600}>
-                <p className="text-xl text-white/70 max-w-3xl mx-auto">
-                  Ephesus AI is your all-in-one communications suite. We handle every inbound inquiry and revive your dormant leads — so your pipeline never goes cold and no opportunity slips through.
-                </p>
-              </FadeIn>
+                <FadeIn delay={200} duration={650}>
+                  <p className="max-w-xl text-lg leading-8 text-white/58 md:text-xl">
+                    Ephesus AI is your all-in-one communications suite. We handle every inbound inquiry and revive your dormant leads &mdash; so your pipeline never goes cold and no opportunity slips through.
+                  </p>
+                </FadeIn>
 
-              <FadeIn delay={360} duration={600}>
-                <div className="flex flex-wrap gap-3 justify-center text-sm text-white/60">
-                  {["Handles inbound 24/7", "Revives dormant leads", "No complex integrations"].map((item) => (
-                    <span key={item} className="flex items-center gap-1.5">
-                      <CheckCircle className="w-4 h-4 text-[#0D9488]" />
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </FadeIn>
+                <FadeIn delay={300} duration={650}>
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <CalendlyButton>
+                      <Button size="lg" className="group h-12 cursor-pointer gap-2 rounded-xl bg-[#77ead6] px-6 text-sm font-semibold text-[#05211c] shadow-[0_14px_40px_rgba(94,234,212,0.16)] transition-colors duration-200 hover:bg-[#9af3e3]">
+                        Schedule a Consultation
+                        <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </CalendlyButton>
+                    <Link href="/demo">
+                      <Button size="lg" className="group h-12 cursor-pointer gap-2 rounded-xl border border-white/12 bg-white/[0.035] px-6 text-sm font-semibold text-white backdrop-blur-sm transition-colors duration-200 hover:bg-white/[0.08]">
+                        <Sparkles className="w-4 h-4 text-[#8ff5e3]" />
+                        Try Live AI Demo
+                      </Button>
+                    </Link>
+                  </div>
+                </FadeIn>
 
-              <FadeIn delay={480} duration={600}>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-                  <CalendlyButton>
-                    <Button size="lg" className="gap-2 group bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] hover:opacity-90 text-white shadow-lg shadow-[#0D9488]/25 hover:shadow-xl hover:shadow-[#0D9488]/40 transition-all duration-300 cursor-pointer text-base px-8">
-                      Schedule a Consultation
-                      <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
-                  </CalendlyButton>
-                  <Link href="/demo">
-                    <Button size="lg" className="gap-2 group border border-white/30 text-white hover:bg-white/10 cursor-pointer text-base px-8 bg-white/5 backdrop-blur-sm">
-                      <Sparkles className="w-4 h-4 text-[#2DD4BF]" />
-                      Try Live AI Demo
-                    </Button>
-                  </Link>
-                </div>
+                <FadeIn delay={380} duration={650}>
+                  <div className="flex flex-wrap gap-x-5 gap-y-2 border-t border-white/[0.08] pt-6 text-xs text-white/42">
+                    {["Handles inbound 24/7", "Revives dormant leads", "No complex integrations"].map((item) => (
+                      <span key={item} className="flex items-center gap-2">
+                        <CheckCircle className="h-3.5 w-3.5 text-[#66d8c4]" />
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </FadeIn>
+              </div>
+
+              <FadeIn delay={260} duration={800} translateY={24} className="relative">
+                <div className="pointer-events-none absolute -inset-8 rounded-full bg-[#1ec5a5]/10 blur-3xl" />
+                <HeroControlRoom />
               </FadeIn>
             </div>
-          </div>
+          </DigitalLoomBackground>
         </section>
 
         {/* 5 Channels Strip */}
-        <section className="border-y border-border bg-secondary/20 py-6">
-          <div className="container mx-auto px-6">
-            <div className="flex flex-wrap items-center justify-center gap-6 md:gap-8 text-center">
+        <section className="channel-rail border-b border-white/[0.08] bg-[#070b0b] py-5">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="flex flex-wrap items-center justify-between gap-x-7 gap-y-4">
+              <span className="hidden text-[10px] font-semibold uppercase tracking-[0.24em] text-white/28 xl:block">One suite / five channels</span>
               {[
-                { icon: PhoneCall, label: "AI Voice Receptionist", color: "from-[#0D9488] to-[#14B8A6]" },
-                { icon: Mail, label: "AI Email Automation", color: "from-[#2DD4BF] to-[#0D9488]" },
-                { icon: MessageSquare, label: "AI Website Chatbot", color: "from-[#14B8A6] to-[#5EEAD4]" },
-                { icon: Instagram, label: "Instagram AI Suite", color: "from-[#E1306C] to-[#833AB4]" },
-                { icon: RefreshCw, label: "AI Lead Revival", color: "from-[#2DD4BF] to-[#0F766E]" },
-              ].map(({ icon: Icon, label, color }) => (
-                <div key={label} className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${color} flex items-center justify-center shadow`}>
-                    <Icon className="w-4 h-4 text-white" />
+                { icon: PhoneCall, label: "AI Voice Receptionist" },
+                { icon: Mail, label: "AI Email Automation" },
+                { icon: MessageSquare, label: "AI Website Chatbot" },
+                { icon: Instagram, label: "Instagram AI Suite" },
+                { icon: RefreshCw, label: "AI Lead Revival" },
+              ].map(({ icon: Icon, label }) => (
+                <div key={label} className="flex items-center gap-2.5 text-white/55 transition-colors duration-200 hover:text-white">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035]">
+                    <Icon className="h-3.5 w-3.5 text-[#77ead6]" />
                   </div>
-                  <span className="font-medium text-sm">{label}</span>
+                  <span className="text-xs font-medium">{label}</span>
                 </div>
               ))}
             </div>
@@ -144,20 +152,20 @@ export default function Home() {
         </section>
 
         {/* Pain Point Section */}
-        <section className="relative overflow-hidden py-20 md:py-28">
+        <section className="relative overflow-hidden py-24 md:py-32">
           <div className="container mx-auto px-6">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-6xl mx-auto">
               <div className="text-center mb-14">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold uppercase tracking-wider mb-4">
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-rose-400/15 bg-rose-400/[0.055] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-rose-300/80">
                   Wake-Up Call
                 </div>
-                <h2 className="text-3xl md:text-5xl font-bold mb-4">
+                <h2 className="mb-5 text-4xl font-medium md:text-6xl">
                   Your Business Is Losing Money{" "}
-                  <span className="bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] bg-clip-text text-transparent">
+                  <span className="font-display font-normal italic text-[#8ff5e3]">
                     Right Now
                   </span>
                 </h2>
-                <p className="text-muted-foreground max-w-xl mx-auto">Every unanswered call, slow email reply, and ignored website visitor is a customer choosing your competitor instead.</p>
+                <p className="text-muted-foreground mx-auto max-w-2xl leading-7">Every unanswered call, slow email reply, and ignored website visitor is a customer choosing your competitor instead.</p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
@@ -185,9 +193,8 @@ export default function Home() {
                   },
                 ].map(({ stat, context, sub, from, to }) => (
                   <div key={stat + context}
-                    className="relative rounded-2xl p-6 overflow-hidden group hover:-translate-y-1 transition-all duration-300"
+                    className="premium-card group relative overflow-hidden rounded-3xl p-7 transition-all duration-300 hover:-translate-y-1"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.7) 100%)',
                       border: `1px solid ${from}30`,
                       boxShadow: `0 0 0 0 ${from}00`,
                     }}
@@ -198,8 +205,7 @@ export default function Home() {
                     {/* Top accent bar */}
                     <div className="w-8 h-0.5 rounded-full mb-4" style={{ background: `linear-gradient(90deg, ${from}, ${to})` }} />
                     {/* Stat */}
-                    <div className="text-5xl font-black tracking-tight mb-1"
-                      style={{ background: `linear-gradient(135deg, ${from}, ${to})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                    <div className="mb-1 text-6xl font-medium tracking-[-0.06em] text-white">
                       {stat}
                     </div>
                     <div className="text-sm font-semibold text-foreground/80 mb-2">{context}</div>
@@ -208,10 +214,10 @@ export default function Home() {
                 ))}
               </div>
 
-              <Card className="p-8 md:p-10 bg-gradient-to-br from-[#0F172A] to-[#134E4A] border-[#0D9488]/30 text-center space-y-4">
-                <div className="text-4xl md:text-5xl font-black text-white">
+              <Card className="dark-panel space-y-5 rounded-3xl p-8 text-center md:p-12">
+                <div className="text-4xl font-medium text-white md:text-5xl">
                   The fix?{" "}
-                  <span className="bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] bg-clip-text text-transparent">
+                  <span className="font-display font-normal italic text-[#8ff5e3]">
                     AI that never sleeps.
                   </span>
                 </div>
@@ -235,15 +241,16 @@ export default function Home() {
         <LiveCounter />
 
         {/* Services Showcase */}
-        <section className="container mx-auto px-6 py-20 md:py-32">
+        <section className="container mx-auto px-6 py-24 md:py-36">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold mb-4">
+            <div className="mb-5 text-[10px] font-semibold uppercase tracking-[0.24em] text-[#77ead6]/70">The complete communications layer</div>
+            <h2 className="mb-5 text-4xl font-medium md:text-6xl">
               One Suite.{" "}
-              <span className="bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] bg-clip-text text-transparent">
+              <span className="font-display font-normal italic text-[#8ff5e3]">
                 Five Solutions.
               </span>
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="mx-auto max-w-2xl text-lg leading-8 text-muted-foreground">
               We handle every inbound inquiry, automate your social DMs, and revive your dormant pipeline — so nothing slips through the cracks.
             </p>
           </div>
@@ -293,21 +300,21 @@ export default function Home() {
               },
             ].map(({ href, icon: Icon, gradient, title, desc, delay, badge }) => (
               <Link href={href} key={title}>
-                <Card className="p-8 space-y-4 gradient-border hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 group cursor-pointer h-full relative" style={{ animationDelay: delay }}>
+                <Card className="premium-card group relative h-full cursor-pointer space-y-5 rounded-3xl p-8 transition-all duration-300 hover:-translate-y-1" style={{ animationDelay: delay }}>
                   {badge && (
                     <span className="absolute top-4 right-4 text-[10px] font-bold px-2 py-0.5 rounded-full"
                       style={{ background: 'linear-gradient(135deg, rgba(225,48,108,0.2), rgba(131,58,180,0.2))', border: '1px solid rgba(225,48,108,0.4)', color: '#f472b6' }}>
                       {badge}
                     </span>
                   )}
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${gradient} shadow-lg shadow-black/20`}>
                     <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold group-hover:bg-gradient-to-r group-hover:from-[#0D9488] group-hover:to-[#2DD4BF] group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
+                  <h3 className="text-xl font-semibold tracking-[-0.025em] text-white transition-colors duration-200 group-hover:text-[#8ff5e3]">
                     {title}
                   </h3>
                   <p className="text-muted-foreground text-sm leading-relaxed">{desc}</p>
-                  <div className="inline-flex items-center gap-2 text-sm font-medium pt-2 text-[#0D9488]">
+                  <div className="inline-flex items-center gap-2 pt-2 text-sm font-medium text-[#77ead6]">
                     Learn more
                     <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </div>
@@ -321,13 +328,13 @@ export default function Home() {
         <ServiceShowcase />
 
         {/* How It Works */}
-        <section className="bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A] py-20 md:py-32 relative overflow-hidden">
+        <section className="dark-panel relative overflow-hidden py-24 md:py-32">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#0D9488_0%,_transparent_70%)] opacity-10" />
           <div className="container mx-auto px-6 relative">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold text-white">
+              <h2 className="text-4xl font-medium text-white md:text-6xl">
                 Simple to{" "}
-                <span className="bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] bg-clip-text text-transparent">
+                <span className="font-display font-normal italic text-[#8ff5e3]">
                   Get Started
                 </span>
               </h2>
@@ -339,8 +346,8 @@ export default function Home() {
                 { step: "02", title: "We Configure Your AI", desc: "We train your AI on your business, services, tone, and how you want inquiries handled." },
                 { step: "03", title: "Go Live & Let AI Work", desc: "Your AI starts responding to every inbound inquiry instantly — 24/7, on autopilot." },
               ].map(({ step, title, desc }) => (
-                <div key={step} className="text-center space-y-4">
-                  <div className="text-5xl font-black bg-gradient-to-r from-[#0D9488] to-[#2DD4BF] bg-clip-text text-transparent">{step}</div>
+                <div key={step} className="premium-card space-y-4 rounded-3xl p-7 text-left">
+                  <div className="text-sm font-bold tracking-[0.18em] text-[#77ead6]">{step}</div>
                   <h3 className="text-xl font-semibold text-white">{title}</h3>
                   <p className="text-white/60 text-sm leading-relaxed">{desc}</p>
                 </div>
@@ -350,7 +357,7 @@ export default function Home() {
         </section>
 
         {/* AI Voice Demo */}
-        <section className="py-20 md:py-32 relative overflow-hidden border-y border-border bg-secondary/10">
+        <section className="relative overflow-hidden border-y border-white/[0.07] bg-[#090d0c] py-24 md:py-32">
           <div className="container mx-auto px-6 relative">
             <div className="max-w-3xl mx-auto space-y-8">
               <div className="text-center space-y-4">
@@ -374,7 +381,7 @@ export default function Home() {
         </section>
 
         {/* Why Choose Us */}
-        <section className="py-20 md:py-32 relative overflow-hidden">
+        <section className="relative overflow-hidden py-24 md:py-32">
           <div className="container mx-auto px-6 relative">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
@@ -480,7 +487,7 @@ export default function Home() {
         </section>
 
         {/* Lead Revival Teaser */}
-        <section className="bg-gray-50 dark:bg-secondary/20 py-20 md:py-28">
+        <section className="border-y border-white/[0.07] bg-[#090d0c] py-24 md:py-32">
           <div className="container mx-auto px-6">
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
@@ -537,7 +544,7 @@ export default function Home() {
         </section>
 
         {/* Instagram AI Suite Teaser */}
-        <section className="py-20 md:py-28 relative overflow-hidden">
+        <section className="relative overflow-hidden py-24 md:py-32">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_#E1306C_0%,_transparent_60%)] opacity-5" />
           <div className="container mx-auto px-6 relative">
             <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
@@ -640,7 +647,7 @@ export default function Home() {
         </section>
 
         {/* Connect & We Handle It */}
-        <section className="bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A] py-20 md:py-32 relative overflow-hidden">
+        <section className="dark-panel relative overflow-hidden py-24 md:py-32">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_#0D9488_0%,_transparent_60%)] opacity-10" />
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_#2DD4BF_0%,_transparent_60%)] opacity-10" />
           <div className="container mx-auto px-6 relative">
@@ -734,7 +741,7 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="bg-gradient-to-br from-[#0F172A] via-[#134E4A] to-[#0F172A] py-20 md:py-32 relative overflow-hidden">
+        <section className="dark-panel relative overflow-hidden py-24 md:py-32">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#2DD4BF_0%,_transparent_70%)] opacity-15" />
           <div className="container mx-auto px-6 relative">
             <div className="max-w-3xl mx-auto text-center space-y-8">
@@ -758,8 +765,8 @@ export default function Home() {
         </section>
 
         {/* Survey CTA */}
-        <section className="container mx-auto px-6 py-20 md:py-28">
-          <Card className="max-w-4xl mx-auto p-8 md:p-12 text-center space-y-6 gradient-border bg-gradient-to-br from-[#0D9488]/5 to-[#2DD4BF]/5">
+        <section className="container mx-auto px-6 py-24 md:py-32">
+          <Card className="premium-card mx-auto max-w-4xl space-y-6 rounded-3xl p-8 text-center md:p-12">
             <div className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-[#0D9488] to-[#2DD4BF] flex items-center justify-center shadow-lg animate-float">
               <ClipboardList className="w-8 h-8 text-white" />
             </div>
