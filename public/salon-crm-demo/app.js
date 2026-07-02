@@ -1,13 +1,22 @@
-const stylists = ["Jules", "Amara", "Kenji", "Sasha"];
-const storageKey = "glossdesk-appointments-v2";
+const storageKey = "glossdesk-appointments-v3";
+const employeeStorageKey = "glossdesk-employees-v1";
+const customerStorageKey = "glossdesk-customers-v1";
 const importedKey = "glossdesk-import-count-v1";
 const googleCalendarChoiceKey = "glossdesk-google-calendar-choice-v1";
+const migrationLogKey = "glossdesk-migration-log-v1";
+
+const seedEmployees = [
+  { id: "emp-1", name: "Jules", role: "Senior stylist", email: "jules@glossdesk.local", phone: "(555) 010-1401", status: "Active", services: "Gloss, color, bridal styling" },
+  { id: "emp-2", name: "Amara", role: "Color specialist", email: "amara@glossdesk.local", phone: "(555) 010-2208", status: "Active", services: "Balayage, blonding, consults" },
+  { id: "emp-3", name: "Kenji", role: "Cutting specialist", email: "kenji@glossdesk.local", phone: "(555) 010-3377", status: "Active", services: "Cuts, blowouts, texture" },
+  { id: "emp-4", name: "Sasha", role: "Stylist", email: "sasha@glossdesk.local", phone: "(555) 010-4489", status: "Active", services: "Color consults, treatments" }
+];
 
 const seedAppointments = [
-  { id: "apt-1", client: "Maya Bennett", email: "maya@example.com", service: "Gloss and style", stylist: "Jules", date: "2026-06-28", start: "09:00", duration: 60, status: "Checked in", notes: "Prefers low-fragrance products. Reserve leave-in conditioner." },
-  { id: "apt-2", client: "Ari Chen", email: "ari@example.com", service: "Balayage consult", stylist: "Amara", date: "2026-06-28", start: "10:15", duration: 45, status: "Confirmed", notes: "Wants bright but low maintenance color." },
-  { id: "apt-3", client: "Nina Patel", email: "nina@example.com", service: "Cut and blowout", stylist: "Kenji", date: "2026-06-28", start: "12:00", duration: 60, status: "Needs reply", notes: "Asked if appointment can move 20 minutes later." },
-  { id: "apt-4", client: "Lena Ortiz", email: "lena@example.com", service: "Root touch-up", stylist: "Jules", date: "2026-06-28", start: "14:30", duration: 90, status: "Booked", notes: "VIP. Birthday offer eligible next week." }
+  { id: "apt-1", client: "Maya Bennett", email: "maya@example.com", phone: "(555) 013-4421", service: "Gloss and style", stylist: "Jules", date: "2026-06-28", start: "09:00", duration: 60, status: "Checked in", notes: "Prefers low-fragrance products. Reserve leave-in conditioner." },
+  { id: "apt-2", client: "Ari Chen", email: "ari@example.com", phone: "(555) 019-7784", service: "Balayage consult", stylist: "Amara", date: "2026-06-28", start: "10:15", duration: 45, status: "Confirmed", notes: "Wants bright but low maintenance color." },
+  { id: "apt-3", client: "Nina Patel", email: "nina@example.com", phone: "(555) 016-9082", service: "Cut and blowout", stylist: "Kenji", date: "2026-06-28", start: "12:00", duration: 60, status: "Needs reply", notes: "Asked if appointment can move 20 minutes later." },
+  { id: "apt-4", client: "Lena Ortiz", email: "lena@example.com", phone: "(555) 011-3309", service: "Root touch-up", stylist: "Jules", date: "2026-06-28", start: "14:30", duration: 90, status: "Booked", notes: "VIP. Birthday offer eligible next week." }
 ];
 
 const emails = [
@@ -27,29 +36,171 @@ const viewTitles = {
   schedule: "Scheduling Studio",
   dashboard: "Front Desk Command Center",
   clients: "Client CRM",
+  employees: "Employee Management",
   email: "Email Hub",
   integrations: "Calendar Integrations",
+  migration: "Switch CRM",
   reports: "Salon Performance"
 };
 
+const fieldMappings = [
+  { target: "Client", accepted: "client, client name, customer, customer name, name, full name" },
+  { target: "Email", accepted: "email, email address" },
+  { target: "Phone", accepted: "phone, mobile, mobile phone, cell, cell phone" },
+  { target: "Service", accepted: "service, appointment type, treatment" },
+  { target: "Stylist", accepted: "stylist, staff, provider, employee, team member" },
+  { target: "Date", accepted: "date, appointment date, start date" },
+  { target: "Start", accepted: "start, start time, time, appointment time" },
+  { target: "Duration", accepted: "duration, duration minutes, length, length minutes" },
+  { target: "Status", accepted: "status, booking status" },
+  { target: "Notes", accepted: "notes, client notes, appointment notes, preferences" }
+];
+
+const sampleCsv = [
+  "client,email,phone,service,stylist,date,start,duration,status,notes",
+  "\"Maya Bennett\",maya@example.com,\"(555) 013-4421\",\"Gloss and style\",Jules,2026-06-28,09:00,60,\"Checked in\",\"Prefers low-fragrance products\"",
+  "\"Priya Lane\",priya@example.com,\"(555) 018-2200\",\"Color consult\",Sasha,2026-06-28,11:00,45,Booked,\"New client from Square export\"",
+  "\"Cam Rose\",cam@example.com,\"(555) 014-8801\",\"Cut and blowout\",Kenji,2026-06-28,15:00,60,Confirmed,\"Imported from old CRM\""
+].join("\n");
+
 let appointments = loadAppointments();
+let employees = loadEmployees();
+let stylists = activeStylistNames();
+let customers = loadCustomers();
 let selectedId = appointments[0]?.id || null;
 let googleCalendarChoices = [];
 let pendingSlot = null;
+syncCustomersFromAppointments();
 
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
 
 function loadAppointments() {
   try {
-    return JSON.parse(localStorage.getItem(storageKey)) || seedAppointments;
+    const saved = JSON.parse(localStorage.getItem(storageKey));
+    return (saved || seedAppointments).map(item => ({ phone: "", ...item }));
   } catch {
-    return seedAppointments;
+    return seedAppointments.map(item => ({ ...item }));
   }
 }
 
 function saveAppointments() {
   localStorage.setItem(storageKey, JSON.stringify(appointments));
+}
+
+function loadEmployees() {
+  try {
+    return JSON.parse(localStorage.getItem(employeeStorageKey)) || seedEmployees.map(item => ({ ...item }));
+  } catch {
+    return seedEmployees.map(item => ({ ...item }));
+  }
+}
+
+function saveEmployees() {
+  localStorage.setItem(employeeStorageKey, JSON.stringify(employees));
+  stylists = activeStylistNames();
+}
+
+function activeStylistNames() {
+  const active = employees.filter(employee => employee.status !== "Inactive").map(employee => employee.name);
+  return active.length ? active : seedEmployees.map(employee => employee.name);
+}
+
+function customerKey(name) {
+  return String(name || "").trim().toLowerCase();
+}
+
+function customerFromAppointment(appointment) {
+  return {
+    name: appointment.client,
+    email: appointment.email || "",
+    phone: appointment.phone || "",
+    notes: appointment.notes || "",
+    lastService: appointment.service || "",
+    lastStylist: appointment.stylist || "",
+    lastVisit: appointment.date || ""
+  };
+}
+
+function customersFromAppointments(items) {
+  const byName = new Map();
+  items.forEach(appointment => {
+    if (!appointment.client) return;
+    const key = customerKey(appointment.client);
+    const existing = byName.get(key) || { name: appointment.client, email: "", phone: "", notes: "", lastService: "", lastStylist: "", lastVisit: "" };
+    byName.set(key, {
+      ...existing,
+      name: appointment.client,
+      email: appointment.email || existing.email,
+      phone: appointment.phone || existing.phone,
+      notes: appointment.notes || existing.notes,
+      lastService: appointment.service || existing.lastService,
+      lastStylist: appointment.stylist || existing.lastStylist,
+      lastVisit: appointment.date || existing.lastVisit
+    });
+  });
+  return [...byName.values()];
+}
+
+function loadCustomers() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(customerStorageKey));
+    return saved?.length ? saved : customersFromAppointments(appointments);
+  } catch {
+    return customersFromAppointments(appointments);
+  }
+}
+
+function saveCustomers() {
+  localStorage.setItem(customerStorageKey, JSON.stringify(customers));
+}
+
+function upsertCustomer(customer) {
+  if (!customer?.name) return;
+  const key = customerKey(customer.name);
+  const index = customers.findIndex(item => customerKey(item.name) === key);
+  const next = index >= 0 ? { ...customers[index], ...customer } : customer;
+  if (index >= 0) customers[index] = next;
+  else customers.push(next);
+  saveCustomers();
+}
+
+function syncCustomersFromAppointments() {
+  customersFromAppointments(appointments).forEach(upsertCustomer);
+}
+
+function findCustomer(name) {
+  const key = customerKey(name);
+  return customers.find(customer => customerKey(customer.name) === key) || null;
+}
+
+function ensureEmployeeForStylist(name) {
+  const fallback = stylists[0] || seedEmployees[0].name;
+  if (!name) return fallback;
+  const existing = employees.find(employee => customerKey(employee.name) === customerKey(name));
+  if (existing) return existing.name;
+  const employee = {
+    id: `emp-${Date.now()}-${employees.length}`,
+    name,
+    role: "Stylist",
+    email: "",
+    phone: "",
+    services: "Imported from CRM staff export",
+    status: "Active"
+  };
+  employees.push(employee);
+  saveEmployees();
+  return employee.name;
+}
+
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
 }
 
 function showToast(message) {
@@ -96,7 +247,28 @@ function appointmentSummary(appointment) {
 }
 
 function appointmentDescription(appointment) {
-  return `Client: ${appointment.client}\nEmail: ${appointment.email || ""}\nService: ${appointment.service}\nStylist: ${appointment.stylist}\nStatus: ${appointment.status}\nNotes: ${appointment.notes || ""}`;
+  return `Client: ${appointment.client}\nEmail: ${appointment.email || ""}\nPhone: ${appointment.phone || ""}\nService: ${appointment.service}\nStylist: ${appointment.stylist}\nStatus: ${appointment.status}\nNotes: ${appointment.notes || ""}`;
+}
+
+function appointmentsOverlap(first, second) {
+  const firstStart = toDate(first).getTime();
+  const firstEnd = toDate(first, true).getTime();
+  const secondStart = toDate(second).getTime();
+  const secondEnd = toDate(second, true).getTime();
+  return firstStart < secondEnd && firstEnd > secondStart;
+}
+
+function findBookingConflict(appointment) {
+  return appointments.find(item => (
+    item.id !== appointment.id &&
+    item.date === appointment.date &&
+    item.stylist === appointment.stylist &&
+    appointmentsOverlap(appointment, item)
+  ));
+}
+
+function conflictMessage(appointment, conflict) {
+  return `${appointment.stylist} is already booked ${formatTime(toDate(conflict))}-${formatTime(toDate(conflict, true))} with ${conflict.client}.`;
 }
 
 function buildIcs(items) {
@@ -125,6 +297,100 @@ function downloadFile(filename, contents, type = "text/calendar") {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+function normalizeHeader(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function parseCsv(text) {
+  const rows = [];
+  let current = "";
+  let row = [];
+  let quoted = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+    if (char === '"' && quoted && next === '"') {
+      current += '"';
+      index += 1;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === "," && !quoted) {
+      row.push(current.trim());
+      current = "";
+    } else if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(current.trim());
+      if (row.some(value => value !== "")) rows.push(row);
+      row = [];
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+
+  row.push(current.trim());
+  if (row.some(value => value !== "")) rows.push(row);
+  if (rows.length < 2) return [];
+
+  const headers = rows[0].map(normalizeHeader);
+  return rows.slice(1).map(values => headers.reduce((record, header, index) => {
+    record[header] = values[index] || "";
+    return record;
+  }, {}));
+}
+
+function firstValue(row, keys) {
+  const match = keys.map(normalizeHeader).find(key => row[key]);
+  return match ? row[match].trim() : "";
+}
+
+function normalizeDateValue(value) {
+  if (!value) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return parsed.toISOString().slice(0, 10);
+}
+
+function normalizeTimeValue(value) {
+  if (!value) return "";
+  const clean = value.trim().toLowerCase();
+  const direct = clean.match(/^(\d{1,2}):(\d{2})$/);
+  if (direct) return `${String(Number(direct[1])).padStart(2, "0")}:${direct[2]}`;
+  const ampm = clean.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/);
+  if (!ampm) return "";
+  let hour = Number(ampm[1]);
+  const minute = ampm[2] || "00";
+  if (ampm[3] === "pm" && hour < 12) hour += 12;
+  if (ampm[3] === "am" && hour === 12) hour = 0;
+  return `${String(hour).padStart(2, "0")}:${minute}`;
+}
+
+function appointmentFromCsvRow(row, index) {
+  const client = firstValue(row, ["client", "client name", "customer", "customer name", "name", "full name"]);
+  const service = firstValue(row, ["service", "appointment type", "treatment"]) || "Imported service";
+  const stylist = ensureEmployeeForStylist(firstValue(row, ["stylist", "staff", "provider", "employee", "team member"]) || stylists[index % stylists.length]);
+  const date = normalizeDateValue(firstValue(row, ["date", "appointment date", "start date"]));
+  const start = normalizeTimeValue(firstValue(row, ["start", "start time", "time", "appointment time"]));
+  const duration = Number(firstValue(row, ["duration", "duration minutes", "length", "length minutes"])) || 60;
+
+  if (!client || !date || !start) return null;
+  return {
+    id: `csv-${Date.now()}-${index}`,
+    client,
+    email: firstValue(row, ["email", "email address"]),
+    phone: firstValue(row, ["phone", "mobile", "mobile phone", "cell", "cell phone"]),
+    service,
+    stylist,
+    date,
+    start,
+    duration: Math.max(15, duration),
+    status: firstValue(row, ["status", "booking status"]) || "Imported",
+    notes: firstValue(row, ["notes", "client notes", "appointment notes", "preferences"])
+  };
 }
 
 function googleCalendarUrl(appointment) {
@@ -233,7 +499,12 @@ function renderSchedule() {
       const displayHour = Number(hour.split(":")[0]);
       const hourNumber = displayHour >= 1 && displayHour <= 5 ? displayHour + 12 : displayHour;
       const slotStart = `${String(hourNumber).padStart(2, "0")}:00`;
-      const matches = appointments.filter(item => item.date === "2026-06-28" && item.stylist === stylist && Number(item.start.split(":")[0]) === hourNumber);
+      const slotAppointment = { id: "slot-preview", date: "2026-06-28", start: slotStart, duration: 60, stylist };
+      const matches = appointments.filter(item => (
+        item.date === "2026-06-28" &&
+        item.stylist === stylist &&
+        appointmentsOverlap(slotAppointment, item)
+      ));
       chunks.push(`
         <div class="calendar-cell ${pendingSlot?.stylist === stylist && pendingSlot?.start === slotStart ? "slot-selected" : ""}" data-slot-date="2026-06-28" data-slot-start="${slotStart}" data-slot-stylist="${stylist}" tabindex="0" role="button" aria-label="Create booking with ${stylist} at ${formatHourLabel(slotStart)}">
           ${matches.map(renderBookingCard).join("")}
@@ -261,6 +532,7 @@ function renderBookingCard(appointment) {
     <button class="booking-card ${statusClass} ${appointment.id === selectedId ? "active" : ""}" data-appointment="${appointment.id}">
       <strong>${formatTime(toDate(appointment))} ${appointment.client}</strong>
       <span>${appointment.service}</span>
+      <span>${appointment.phone || appointment.email || "No phone"}</span>
       <span>${appointment.status}</span>
     </button>
   `;
@@ -276,13 +548,20 @@ function selectAppointment(id) {
   renderSelected();
 }
 
+function renderStylistOptions(selected = "") {
+  const names = [...new Set([...stylists, selected].filter(Boolean))];
+  qs("#stylist-input").innerHTML = names.map(stylist => `<option>${escapeHtml(stylist)}</option>`).join("");
+  if (selected) qs("#stylist-input").value = selected;
+}
+
 function fillForm(appointment) {
   qs("#form-heading").textContent = "Edit appointment";
   qs("#appointment-id").value = appointment.id;
   qs("#client-input").value = appointment.client;
   qs("#email-input").value = appointment.email || "";
+  qs("#phone-input").value = appointment.phone || "";
   qs("#service-input").value = appointment.service;
-  qs("#stylist-input").value = appointment.stylist;
+  renderStylistOptions(appointment.stylist);
   qs("#date-input").value = appointment.date;
   qs("#start-input").value = appointment.start;
   qs("#duration-input").value = appointment.duration;
@@ -295,8 +574,9 @@ function clearForm() {
   qs("#appointment-id").value = "";
   qs("#client-input").value = "";
   qs("#email-input").value = "";
+  qs("#phone-input").value = "";
   qs("#service-input").value = "";
-  qs("#stylist-input").value = stylists[0];
+  renderStylistOptions(stylists[0]);
   qs("#date-input").value = "2026-06-28";
   qs("#start-input").value = "09:00";
   qs("#duration-input").value = "60";
@@ -305,6 +585,20 @@ function clearForm() {
 }
 
 function selectSlot({ date, start, stylist }) {
+  const draft = {
+    id: "slot-preview",
+    date,
+    start,
+    stylist,
+    duration: Number(qs("#duration-input")?.value || 60)
+  };
+  const conflict = findBookingConflict(draft);
+  if (conflict) {
+    selectAppointment(conflict.id);
+    showToast(conflictMessage(draft, conflict));
+    return;
+  }
+
   selectedId = null;
   pendingSlot = { date, start, stylist };
   clearForm();
@@ -368,7 +662,7 @@ function renderSelected() {
     return;
   }
   qs("#selected-title").textContent = appointmentSummary(appointment);
-  qs("#selected-detail").textContent = `${formatDateRange(appointment)} with ${appointment.stylist}. ${appointment.notes || ""}`;
+  qs("#selected-detail").textContent = `${formatDateRange(appointment)} with ${appointment.stylist}. ${appointment.phone ? `Phone ${appointment.phone}. ` : ""}${appointment.notes || ""}`;
 }
 
 function handleBookingSubmit(event) {
@@ -378,6 +672,7 @@ function handleBookingSubmit(event) {
     id,
     client: qs("#client-input").value.trim(),
     email: qs("#email-input").value.trim(),
+    phone: qs("#phone-input").value.trim(),
     service: qs("#service-input").value.trim(),
     stylist: qs("#stylist-input").value,
     date: qs("#date-input").value,
@@ -387,11 +682,19 @@ function handleBookingSubmit(event) {
     notes: qs("#notes-input").value.trim()
   };
 
+  const conflict = findBookingConflict(appointment);
+  if (conflict) {
+    showToast(conflictMessage(appointment, conflict));
+    qs("#start-input").focus();
+    return;
+  }
+
   const existingIndex = appointments.findIndex(item => item.id === id);
   if (existingIndex >= 0) appointments[existingIndex] = appointment;
   else appointments.push(appointment);
 
   selectedId = id;
+  upsertCustomer(customerFromAppointment(appointment));
   saveAppointments();
   renderAll();
   fillForm(appointment);
@@ -488,6 +791,7 @@ function readIcs(text) {
       id: `import-${Date.now()}-${index}`,
       client,
       email: "",
+      phone: "",
       service,
       stylist: stylists[index % stylists.length],
       date: start.date,
@@ -508,6 +812,7 @@ function handleIcsImport(file) {
     appointments = [...appointments, ...imported];
     selectedId = imported[0].id;
     localStorage.setItem(importedKey, String(Number(localStorage.getItem(importedKey) || 0) + imported.length));
+    imported.forEach(item => upsertCustomer(customerFromAppointment(item)));
     saveAppointments();
     renderAll();
     fillForm(imported[0]);
@@ -516,35 +821,249 @@ function handleIcsImport(file) {
   reader.readAsText(file);
 }
 
+function saveMigrationLog(log) {
+  localStorage.setItem(migrationLogKey, JSON.stringify(log));
+}
+
+function latestMigrationLog() {
+  try {
+    return JSON.parse(localStorage.getItem(migrationLogKey));
+  } catch {
+    return null;
+  }
+}
+
+function handleCsvImport(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const rows = parseCsv(String(reader.result || ""));
+    if (!rows.length) return showToast("No CRM rows found in that CSV.");
+
+    const imported = [];
+    const skipped = [];
+    const conflicts = [];
+
+    rows.forEach((row, index) => {
+      const appointment = appointmentFromCsvRow(row, index);
+      if (!appointment) {
+        skipped.push(`Row ${index + 2}: missing client, date, or start time.`);
+        return;
+      }
+      const conflict = findBookingConflict(appointment);
+      if (conflict) {
+        conflicts.push(`Row ${index + 2}: ${conflictMessage(appointment, conflict)}`);
+        return;
+      }
+      imported.push(appointment);
+      appointments.push(appointment);
+      upsertCustomer(customerFromAppointment(appointment));
+    });
+
+    if (imported.length) {
+      selectedId = imported[0].id;
+      localStorage.setItem(importedKey, String(Number(localStorage.getItem(importedKey) || 0) + imported.length));
+      saveAppointments();
+      fillForm(imported[0]);
+    }
+
+    const log = {
+      imported: imported.length,
+      skipped: skipped.length,
+      conflicts: conflicts.length,
+      fileName: file.name,
+      at: new Date().toLocaleString(),
+      details: [...conflicts, ...skipped].slice(0, 6)
+    };
+    saveMigrationLog(log);
+    renderAll();
+    showToast(`CRM import finished: ${imported.length} added, ${conflicts.length + skipped.length} skipped.`);
+  };
+  reader.readAsText(file);
+}
+
+function renderMigration() {
+  const uniqueClients = new Set(appointments.map(item => item.client)).size;
+  const withContact = appointments.filter(item => item.email || item.phone).length;
+  const readiness = [
+    { label: "Clients ready", value: uniqueClients },
+    { label: "Appointments loaded", value: appointments.length },
+    { label: "With contact info", value: `${Math.round((withContact / Math.max(appointments.length, 1)) * 100)}%` }
+  ];
+
+  qs("#migration-readiness").innerHTML = readiness.map(item => `
+    <div>
+      <strong>${item.value}</strong>
+      <span>${item.label}</span>
+    </div>
+  `).join("");
+
+  qs("#field-map").innerHTML = fieldMappings.map(item => `
+    <div class="field-map-row">
+      <strong>${item.target}</strong>
+      <span>${item.accepted}</span>
+    </div>
+  `).join("");
+
+  const log = latestMigrationLog();
+  if (!log) {
+    qs("#migration-summary").textContent = "Import a CRM CSV to preview the switch-over summary.";
+    qs("#migration-log").innerHTML = `<p class="subline">No CRM CSV imported in this browser yet.</p>`;
+    return;
+  }
+
+  qs("#migration-summary").textContent = `${log.fileName} imported on ${log.at}: ${log.imported} added, ${log.conflicts} conflicts, ${log.skipped} incomplete rows.`;
+  qs("#migration-log").innerHTML = `
+    <div class="migration-log-grid">
+      <div><strong>${log.imported}</strong><span>Added</span></div>
+      <div><strong>${log.conflicts}</strong><span>Conflicts</span></div>
+      <div><strong>${log.skipped}</strong><span>Incomplete</span></div>
+    </div>
+    ${(log.details || []).length ? `<ul>${log.details.map(detail => `<li>${detail}</li>`).join("")}</ul>` : `<p class="subline">No skipped rows. This file is ready to review in the calendar.</p>`}
+  `;
+}
+
+function renderCustomerOptions() {
+  const options = customers
+    .slice()
+    .sort((first, second) => first.name.localeCompare(second.name))
+    .map(customer => `<option value="${escapeHtml(customer.name)}">${escapeHtml(customer.phone || customer.email || "")}</option>`)
+    .join("");
+  qs("#client-options").innerHTML = options;
+}
+
+function autofillCustomer() {
+  const customer = findCustomer(qs("#client-input").value);
+  if (!customer) return;
+  if (qs("#appointment-id").value) return;
+  if (!qs("#email-input").value) qs("#email-input").value = customer.email || "";
+  if (!qs("#phone-input").value) qs("#phone-input").value = customer.phone || "";
+  if (!qs("#notes-input").value) qs("#notes-input").value = customer.notes || "";
+  showToast(`Autofilled ${customer.name}'s saved customer info.`);
+}
+
 function renderClients() {
-  const byClient = [...new Map(appointments.map(item => [item.client, item])).values()];
+  const byClient = customers.slice().sort((first, second) => first.name.localeCompare(second.name));
   qs("#client-list").innerHTML = byClient.map((client, index) => `
-    <button class="client-row ${index === 0 ? "active" : ""}" data-client="${client.client}">
-      <strong>${client.client}</strong>
-      <span class="subline">${client.email || "No email"} - next ${client.date}</span>
+    <button class="client-row ${index === 0 ? "active" : ""}" data-client="${escapeHtml(client.name)}">
+      <strong>${escapeHtml(client.name)}</strong>
+      <span class="subline">${escapeHtml(client.phone || "No phone")} - ${escapeHtml(client.email || "No email")} - last ${escapeHtml(client.lastVisit || "No visit yet")}</span>
     </button>
   `).join("");
 
   qsa("[data-client]").forEach(button => button.addEventListener("click", () => {
     qsa(".client-row").forEach(row => row.classList.toggle("active", row === button));
     const clientAppointments = appointments.filter(item => item.client === button.dataset.client);
-    renderClientProfile(button.dataset.client, clientAppointments);
+    renderClientProfile(button.dataset.client, clientAppointments, findCustomer(button.dataset.client));
   }));
-  if (byClient[0]) renderClientProfile(byClient[0].client, appointments.filter(item => item.client === byClient[0].client));
+  if (byClient[0]) renderClientProfile(byClient[0].name, appointments.filter(item => item.client === byClient[0].name), byClient[0]);
 }
 
-function renderClientProfile(clientName, items) {
+function renderClientProfile(clientName, items, customer = null) {
   const totalMinutes = items.reduce((sum, item) => sum + Number(item.duration), 0);
+  const primary = customer || items[0] || {};
   qs("#client-profile").innerHTML = `
     <p class="eyebrow">Client profile</p>
-    <h2>${clientName}</h2>
+    <h2>${escapeHtml(clientName)}</h2>
     <div class="profile-grid">
       <div><strong>${items.length}</strong><span class="subline">Appointments</span></div>
       <div><strong>${totalMinutes}</strong><span class="subline">Booked minutes</span></div>
       <div><strong>${items[0]?.status || "New"}</strong><span class="subline">Latest status</span></div>
+      <div><strong>${escapeHtml(primary.phone || "No phone")}</strong><span class="subline">Phone</span></div>
     </div>
-    <p>${items.map(item => `${item.date} ${item.start}: ${item.service} with ${item.stylist}`).join("<br>")}</p>
+    <p class="subline">${escapeHtml(primary.email || "No email on file")}</p>
+    <p>${items.length ? items.map(item => `${escapeHtml(item.date)} ${escapeHtml(item.start)}: ${escapeHtml(item.service)} with ${escapeHtml(item.stylist)}`).join("<br>") : "Saved customer record with no appointment history yet."}</p>
   `;
+}
+
+function renderEmployees() {
+  const activeCount = employees.filter(employee => employee.status !== "Inactive").length;
+  qs("#employee-summary").innerHTML = `
+    <div><strong>${employees.length}</strong><span>Total employees</span></div>
+    <div><strong>${activeCount}</strong><span>Bookable stylists</span></div>
+    <div><strong>${appointments.filter(item => stylists.includes(item.stylist)).length}</strong><span>Assigned bookings</span></div>
+  `;
+
+  qs("#employee-list").innerHTML = employees.map(employee => `
+    <article class="employee-row ${employee.status === "Inactive" ? "inactive" : ""}">
+      <div>
+        <strong>${escapeHtml(employee.name)}</strong>
+        <span class="subline">${escapeHtml(employee.role || "Stylist")} - ${escapeHtml(employee.status)}</span>
+        <span class="subline">${escapeHtml(employee.phone || "No phone")} - ${escapeHtml(employee.email || "No email")}</span>
+        <span class="subline">${escapeHtml(employee.services || "No services listed")}</span>
+      </div>
+      <div class="employee-actions">
+        <button class="secondary-button" data-edit-employee="${escapeHtml(employee.id)}">Edit</button>
+        <button class="secondary-button" data-toggle-employee="${escapeHtml(employee.id)}">${employee.status === "Inactive" ? "Reactivate" : "Deactivate"}</button>
+      </div>
+    </article>
+  `).join("");
+}
+
+function fillEmployeeForm(employee) {
+  qs("#employee-id").value = employee.id;
+  qs("#employee-name").value = employee.name;
+  qs("#employee-role").value = employee.role || "";
+  qs("#employee-email").value = employee.email || "";
+  qs("#employee-phone").value = employee.phone || "";
+  qs("#employee-services").value = employee.services || "";
+  qs("#employee-status").value = employee.status || "Active";
+  qs("#employee-form-title").textContent = "Edit employee";
+}
+
+function clearEmployeeForm() {
+  qs("#employee-id").value = "";
+  qs("#employee-name").value = "";
+  qs("#employee-role").value = "";
+  qs("#employee-email").value = "";
+  qs("#employee-phone").value = "";
+  qs("#employee-services").value = "";
+  qs("#employee-status").value = "Active";
+  qs("#employee-form-title").textContent = "Add employee";
+}
+
+function handleEmployeeSubmit(event) {
+  event.preventDefault();
+  const id = qs("#employee-id").value || `emp-${Date.now()}`;
+  const employee = {
+    id,
+    name: qs("#employee-name").value.trim(),
+    role: qs("#employee-role").value.trim(),
+    email: qs("#employee-email").value.trim(),
+    phone: qs("#employee-phone").value.trim(),
+    services: qs("#employee-services").value.trim(),
+    status: qs("#employee-status").value
+  };
+  if (!employee.name) return showToast("Employee name is required.");
+
+  const existingIndex = employees.findIndex(item => item.id === id);
+  if (existingIndex >= 0) employees[existingIndex] = employee;
+  else employees.push(employee);
+
+  saveEmployees();
+  renderStylistOptions(qs("#stylist-input").value);
+  renderAll();
+  clearEmployeeForm();
+  showToast("Employee saved.");
+}
+
+function handleEmployeeListClick(event) {
+  const editId = event.target.closest("[data-edit-employee]")?.dataset.editEmployee;
+  if (editId) {
+    const employee = employees.find(item => item.id === editId);
+    if (employee) fillEmployeeForm(employee);
+    return;
+  }
+
+  const toggleId = event.target.closest("[data-toggle-employee]")?.dataset.toggleEmployee;
+  if (!toggleId) return;
+  const employee = employees.find(item => item.id === toggleId);
+  if (!employee) return;
+  employee.status = employee.status === "Inactive" ? "Active" : "Inactive";
+  saveEmployees();
+  renderStylistOptions(qs("#stylist-input").value);
+  renderAll();
+  showToast(`${employee.name} is now ${employee.status.toLowerCase()}.`);
 }
 
 function renderEmail() {
@@ -614,20 +1133,29 @@ function switchView(view) {
 function renderAll() {
   renderSchedule();
   renderSelected();
+  renderCustomerOptions();
   renderClients();
+  renderEmployees();
   renderEmail();
   renderReports();
+  renderMigration();
   renderMetrics();
 }
 
 function init() {
-  qs("#stylist-input").innerHTML = stylists.map(stylist => `<option>${stylist}</option>`).join("");
+  renderStylistOptions(stylists[0]);
   qsa("[data-view]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.view)));
   qs("#calendar-grid").addEventListener("click", handleCalendarClick);
   qs("#calendar-grid").addEventListener("keydown", handleCalendarKeydown);
   qs("#booking-form").addEventListener("submit", handleBookingSubmit);
+  qs("#client-input").addEventListener("input", autofillCustomer);
+  qs("#client-input").addEventListener("change", autofillCustomer);
+  qs("#client-input").addEventListener("blur", autofillCustomer);
   qs("#clear-form").addEventListener("click", clearForm);
   qs("#delete-appointment").addEventListener("click", deleteSelectedAppointment);
+  qs("#employee-form").addEventListener("submit", handleEmployeeSubmit);
+  qs("#clear-employee-form").addEventListener("click", clearEmployeeForm);
+  qs("#employee-list").addEventListener("click", handleEmployeeListClick);
   qs("#new-appointment").addEventListener("click", () => {
     switchView("schedule");
     clearForm();
@@ -649,10 +1177,15 @@ function init() {
   });
   qs("#reset-demo").addEventListener("click", () => {
     appointments = seedAppointments.map(item => ({ ...item }));
+    employees = seedEmployees.map(item => ({ ...item }));
+    saveEmployees();
+    customers = customersFromAppointments(appointments);
     selectedId = appointments[0].id;
     pendingSlot = null;
     localStorage.removeItem(importedKey);
+    localStorage.removeItem(migrationLogKey);
     saveAppointments();
+    saveCustomers();
     renderAll();
     fillForm(selectedAppointment());
     showToast("Demo data reset.");
@@ -661,9 +1194,22 @@ function init() {
   qs("#import-trigger").addEventListener("click", () => qs("#ics-import").click());
   qs("#import-trigger-2").addEventListener("click", () => qs("#ics-import").click());
   qs("#ics-import").addEventListener("change", event => handleIcsImport(event.target.files[0]));
+  qs("#import-csv-trigger").addEventListener("click", () => qs("#csv-import").click());
+  qs("#csv-import").addEventListener("change", event => {
+    handleCsvImport(event.target.files[0]);
+    event.target.value = "";
+  });
+  qs("#download-sample-csv").addEventListener("click", () => {
+    downloadFile("glossdesk-migration-sample.csv", sampleCsv, "text/csv");
+    showToast("Downloaded sample CRM CSV.");
+  });
   qs("#global-search").addEventListener("input", event => {
     const term = event.target.value.toLowerCase();
-    qsa(".booking-card").forEach(card => card.style.display = card.textContent.toLowerCase().includes(term) ? "grid" : "none");
+    qsa(".booking-card").forEach(card => {
+      const appointment = appointments.find(item => item.id === card.dataset.appointment);
+      const searchable = `${card.textContent} ${appointment?.email || ""} ${appointment?.phone || ""}`.toLowerCase();
+      card.style.display = searchable.includes(term) ? "grid" : "none";
+    });
   });
   renderAll();
   if (selectedAppointment()) fillForm(selectedAppointment());

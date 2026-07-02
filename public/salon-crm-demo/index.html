@@ -23,14 +23,16 @@
           <button class="nav-item active" data-view="schedule"><span>Calendar</span></button>
           <button class="nav-item" data-view="dashboard"><span>Dashboard</span></button>
           <button class="nav-item" data-view="clients"><span>Clients</span></button>
+          <button class="nav-item" data-view="employees"><span>Employees</span></button>
           <button class="nav-item" data-view="email"><span>Email</span><em>12</em></button>
           <button class="nav-item" data-view="integrations"><span>Integrations</span></button>
+          <button class="nav-item" data-view="migration"><span>Switch CRM</span></button>
           <button class="nav-item" data-view="reports"><span>Reports</span></button>
         </nav>
         <div class="sync-card">
           <span class="sync-dot"></span>
-          <strong id="sync-summary">Calendar export ready</strong>
-          <p>Use Google links, Outlook links, .ics export, or .ics import from the browser.</p>
+          <strong id="sync-summary">Switch-over tools ready</strong>
+          <p>Import CSV exports, bring over calendar files, map fields, and keep the team booking on day one.</p>
         </div>
       </aside>
 
@@ -43,11 +45,12 @@
           <div class="top-actions">
             <label class="search">
               <span>Search</span>
-              <input id="global-search" type="search" placeholder="Client, service, stylist, email" />
+              <input id="global-search" type="search" placeholder="Client, phone, service, stylist, email" />
             </label>
             <button class="secondary-button" id="import-trigger">Import .ics</button>
             <button class="primary-button" id="new-appointment">New booking</button>
             <input id="ics-import" type="file" accept=".ics,text/calendar" hidden />
+            <input id="csv-import" type="file" accept=".csv,text/csv" hidden />
           </div>
         </header>
 
@@ -74,8 +77,10 @@
                 <h2 id="form-heading">Create appointment</h2>
                 <form id="booking-form">
                   <input id="appointment-id" type="hidden" />
-                  <label>Client<input id="client-input" required placeholder="Maya Bennett" /></label>
+                  <label>Client<input id="client-input" list="client-options" required placeholder="Maya Bennett" /></label>
+                  <datalist id="client-options"></datalist>
                   <label>Email<input id="email-input" type="email" placeholder="maya@example.com" /></label>
+                  <label>Phone<input id="phone-input" type="tel" placeholder="(555) 123-4567" /></label>
                   <label>Service<input id="service-input" required placeholder="Gloss and style" /></label>
                   <label>Stylist<select id="stylist-input"></select></label>
                   <div class="form-row">
@@ -139,6 +144,40 @@
           </div>
         </section>
 
+        <section class="view" id="employees">
+          <div class="employee-layout">
+            <section class="panel-card wide-card">
+              <p class="eyebrow">Team</p>
+              <h2>Employee management</h2>
+              <div class="employee-summary" id="employee-summary"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Staff directory</p>
+              <h2>Employees</h2>
+              <div id="employee-list"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Staff profile</p>
+              <h2 id="employee-form-title">Add employee</h2>
+              <form id="employee-form">
+                <input id="employee-id" type="hidden" />
+                <label>Name<input id="employee-name" required placeholder="Taylor Brooks" /></label>
+                <label>Role<input id="employee-role" placeholder="Stylist" /></label>
+                <div class="form-row">
+                  <label>Email<input id="employee-email" type="email" placeholder="taylor@salon.com" /></label>
+                  <label>Phone<input id="employee-phone" type="tel" placeholder="(555) 444-0101" /></label>
+                </div>
+                <label>Services<textarea id="employee-services" placeholder="Cuts, color, treatments"></textarea></label>
+                <label>Status<select id="employee-status"><option>Active</option><option>Inactive</option></select></label>
+                <div class="button-row">
+                  <button class="primary-button" type="submit">Save employee</button>
+                  <button class="secondary-button" type="button" id="clear-employee-form">New employee</button>
+                </div>
+              </form>
+            </section>
+          </div>
+        </section>
+
         <section class="view" id="email">
           <div class="split-layout">
             <section class="panel-card">
@@ -195,6 +234,52 @@
                 <li>Production: store provider tokens securely and save provider event IDs on each appointment.</li>
               </ol>
             </article>
+          </div>
+        </section>
+
+        <section class="view" id="migration">
+          <div class="migration-layout">
+            <section class="panel-card migration-hero">
+              <p class="eyebrow">CRM switch-over</p>
+              <h2>Move salon data in without rebuilding from scratch.</h2>
+              <p>Bring client lists and appointment exports from tools like Square, Vagaro, Mindbody, Boulevard, GlossGenius, or a spreadsheet. The demo accepts common salon CRM CSV columns, skips double-booking conflicts, and shows what moved over.</p>
+              <div class="button-row">
+                <button class="primary-button" id="import-csv-trigger">Import CRM CSV</button>
+                <button class="secondary-button" id="download-sample-csv">Download sample CSV</button>
+              </div>
+            </section>
+
+            <section class="panel-card">
+              <p class="eyebrow">Migration status</p>
+              <h2>Readiness snapshot</h2>
+              <div class="migration-score" id="migration-readiness"></div>
+              <div class="migration-summary" id="migration-summary">Import a CRM CSV to preview the switch-over summary.</div>
+            </section>
+
+            <section class="panel-card wide-card">
+              <p class="eyebrow">Field mapping</p>
+              <h2>What the importer understands</h2>
+              <div class="field-map" id="field-map"></div>
+            </section>
+
+            <section class="panel-card">
+              <p class="eyebrow">Switch checklist</p>
+              <h2>Port-over plan</h2>
+              <ol class="setup-list migration-checklist">
+                <li>Export clients and appointments from the current CRM as CSV.</li>
+                <li>Import the CSV here, review skipped conflicts, and fix any missing stylist or time fields.</li>
+                <li>Connect Google Calendar, create live events, and export an .ics backup for the team.</li>
+                <li>Invite staff, confirm service durations, then start booking new appointments in GlossDesk.</li>
+              </ol>
+            </section>
+
+            <section class="panel-card">
+              <p class="eyebrow">Import log</p>
+              <h2>Latest CRM import</h2>
+              <div class="migration-log" id="migration-log">
+                <p class="subline">No CRM CSV imported in this browser yet.</p>
+              </div>
+            </section>
           </div>
         </section>
 

@@ -485,7 +485,7 @@ textarea {
   font-size: clamp(28px, 5vw, 46px);
 }
 
-.metrics-grid, .split-layout, .integration-grid {
+.metrics-grid, .split-layout, .integration-grid, .migration-layout, .employee-layout {
   display: grid;
   gap: 16px;
   margin-top: 16px;
@@ -520,8 +520,96 @@ textarea {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.migration-layout {
+  grid-template-columns: 1.25fr .75fr;
+}
+
+.employee-layout {
+  grid-template-columns: minmax(0, 1fr) 420px;
+}
+
 .wide-card {
   grid-column: 1 / -1;
+}
+
+.migration-hero {
+  background: linear-gradient(135deg, #fffefa 0%, #eef6f1 100%);
+}
+
+.migration-hero h2 {
+  max-width: 760px;
+  font-size: clamp(24px, 3vw, 34px);
+}
+
+.migration-score,
+.migration-log-grid,
+.employee-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.migration-score div,
+.migration-log-grid div,
+.employee-summary div,
+.field-map-row {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.migration-score strong,
+.migration-log-grid strong,
+.employee-summary strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 24px;
+}
+
+.migration-score span,
+.migration-log-grid span,
+.employee-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.migration-summary {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.field-map {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.field-map-row {
+  display: grid;
+  gap: 4px;
+}
+
+.field-map-row span,
+.migration-log li {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.migration-checklist li {
+  margin-bottom: 6px;
+}
+
+.migration-log ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
 }
 
 .setup-list {
@@ -585,7 +673,7 @@ textarea {
   text-decoration: none;
 }
 
-.client-row, .email-row {
+.client-row, .email-row, .employee-row {
   display: grid;
   gap: 4px;
   width: 100%;
@@ -600,6 +688,22 @@ textarea {
 .client-row.active, .email-row.active {
   border-color: var(--green);
   background: var(--green-soft);
+}
+
+.employee-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.employee-row.inactive {
+  opacity: .68;
+}
+
+.employee-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .subline {
@@ -666,7 +770,7 @@ textarea {
   .app-shell { grid-template-columns: 88px minmax(0, 1fr); }
   .brand div:not(.brand-mark), .nav-item span, .sync-card p, .sync-card strong { display: none; }
   .nav-item { justify-content: center; }
-  .schedule-layout, .split-layout, .integration-grid { grid-template-columns: 1fr; }
+  .schedule-layout, .split-layout, .integration-grid, .migration-layout, .employee-layout { grid-template-columns: 1fr; }
   .booking-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -726,7 +830,9 @@ textarea {
   }
   .calendar-grid { grid-template-columns: 68px repeat(4, 180px); }
   .booking-panel, .metrics-grid { grid-template-columns: 1fr; }
-  .form-row, .button-row, .action-grid, .profile-grid { grid-template-columns: 1fr; }
+  .form-row, .button-row, .action-grid, .profile-grid, .field-map, .migration-score, .migration-log-grid, .employee-summary, .employee-row { grid-template-columns: 1fr; }
+  .employee-actions { justify-content: stretch; }
+  .employee-actions button { width: 100%; }
 }
 
 @media (max-width: 420px) {

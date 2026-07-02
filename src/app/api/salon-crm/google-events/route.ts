@@ -15,6 +15,7 @@ interface SalonAppointmentPayload {
   appointment: {
     client: string;
     email?: string;
+    phone?: string;
     service: string;
     stylist: string;
     date: string;
@@ -63,6 +64,7 @@ export async function POST(req: NextRequest) {
     '',
     `Client: ${appointment.client}`,
     appointment.email ? `Email: ${appointment.email}` : null,
+    appointment.phone ? `Phone: ${appointment.phone}` : null,
     `Service: ${appointment.service}`,
     `Stylist: ${appointment.stylist}`,
     `Status: ${appointment.status}`,
