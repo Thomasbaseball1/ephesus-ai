@@ -230,13 +230,33 @@ function renderSchedule() {
     stylists.forEach(stylist => {
       const displayHour = Number(hour.split(":")[0]);
       const hourNumber = displayHour >= 1 && displayHour <= 5 ? displayHour + 12 : displayHour;
+      const slotStart = `${String(hourNumber).padStart(2, "0")}:00`;
       const matches = appointments.filter(item => item.date === "2026-06-28" && item.stylist === stylist && Number(item.start.split(":")[0]) === hourNumber);
-      chunks.push(`<div class="calendar-cell">${matches.map(renderBookingCard).join("")}</div>`);
+      chunks.push(`
+        <div class="calendar-cell">
+          ${matches.map(renderBookingCard).join("")}
+          <button class="slot-button" data-slot-date="2026-06-28" data-slot-start="${slotStart}" data-slot-stylist="${stylist}">
+            <span>+</span> Book ${formatHourLabel(slotStart)}
+          </button>
+        </div>
+      `);
     });
   });
 
   qs("#calendar-grid").innerHTML = chunks.join("");
   qsa("[data-appointment]").forEach(button => button.addEventListener("click", () => selectAppointment(button.dataset.appointment)));
+  qsa("[data-slot-date]").forEach(button => button.addEventListener("click", () => selectSlot({
+    date: button.dataset.slotDate,
+    start: button.dataset.slotStart,
+    stylist: button.dataset.slotStylist
+  })));
+}
+
+function formatHourLabel(time) {
+  const [hour, minute] = time.split(":").map(Number);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
 }
 
 function renderBookingCard(appointment) {
@@ -285,6 +305,20 @@ function clearForm() {
   qs("#duration-input").value = "60";
   qs("#status-input").value = "Booked";
   qs("#notes-input").value = "";
+}
+
+function selectSlot({ date, start, stylist }) {
+  selectedId = null;
+  clearForm();
+  qs("#form-heading").textContent = `New booking with ${stylist}`;
+  qs("#stylist-input").value = stylist;
+  qs("#date-input").value = date;
+  qs("#start-input").value = start;
+  qs("#status-input").value = "Booked";
+  renderSchedule();
+  renderSelected();
+  qs("#client-input").focus();
+  showToast(`${stylist} selected for ${formatHourLabel(start)}.`);
 }
 
 function deleteSelectedAppointment() {

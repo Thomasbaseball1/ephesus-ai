@@ -299,6 +299,42 @@ h2 { margin-bottom: 10px; font-size: 20px; letter-spacing: 0; }
   background: #fff;
 }
 
+.slot-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 34px;
+  margin-top: 6px;
+  border: 1px dashed rgba(39,102,83,.28);
+  border-radius: 7px;
+  background: rgba(220,238,229,.45);
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 800;
+  opacity: .72;
+  transition: background .18s ease, border-color .18s ease, opacity .18s ease;
+}
+
+.slot-button span {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--green);
+  color: #fff;
+  line-height: 1;
+}
+
+.calendar-cell:hover .slot-button,
+.slot-button:focus-visible {
+  border-color: rgba(39,102,83,.5);
+  background: var(--green-soft);
+  opacity: 1;
+}
+
 .booking-card {
   display: grid;
   gap: 4px;
