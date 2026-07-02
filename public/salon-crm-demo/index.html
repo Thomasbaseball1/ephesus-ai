@@ -24,6 +24,7 @@
           <button class="nav-item" data-view="dashboard"><span>Dashboard</span></button>
           <button class="nav-item" data-view="clients"><span>Clients</span></button>
           <button class="nav-item" data-view="employees"><span>Employees</span></button>
+          <button class="nav-item" data-view="payments"><span>Payments</span></button>
           <button class="nav-item" data-view="email"><span>Email</span><em>12</em></button>
           <button class="nav-item" data-view="integrations"><span>Integrations</span></button>
           <button class="nav-item" data-view="migration"><span>Switch CRM</span></button>
@@ -186,6 +187,42 @@
               <div id="inbox-list"></div>
             </section>
             <section class="panel-card" id="message-panel"></section>
+          </div>
+        </section>
+
+        <section class="view" id="payments">
+          <div class="payment-layout">
+            <section class="panel-card wide-card">
+              <p class="eyebrow">Checkout</p>
+              <h2>Payments, deposits, and refunds</h2>
+              <div class="payment-summary" id="payment-summary"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Appointments</p>
+              <h2>Checkout queue</h2>
+              <div id="payment-appointment-list"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Take payment</p>
+              <h2 id="payment-title">Select an appointment</h2>
+              <p id="payment-detail" class="subline">Choose a booking to take a deposit or checkout payment.</p>
+              <div class="form-row">
+                <label>Service price<input id="payment-service-price" type="number" min="0" step="0.01" /></label>
+                <label>Suggested deposit<input id="payment-deposit" type="number" min="0" step="0.01" /></label>
+              </div>
+              <label>Amount<input id="payment-amount" type="number" min="0" step="0.01" /></label>
+              <label>Method<select id="payment-method"></select></label>
+              <div class="button-row">
+                <button class="primary-button" id="take-deposit" type="button">Take deposit</button>
+                <button class="secondary-button" id="take-payment" type="button">Checkout</button>
+              </div>
+              <p class="subline">Demo mode: Square, Stripe, Google Pay, cash, and gift card states are recorded locally. Production would tokenize payments through the selected provider.</p>
+            </section>
+            <section class="panel-card wide-card">
+              <p class="eyebrow">Ledger</p>
+              <h2>Payment history</h2>
+              <div id="payment-history"></div>
+            </section>
           </div>
         </section>
 

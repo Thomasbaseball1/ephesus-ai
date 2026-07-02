@@ -1,6 +1,7 @@
 const storageKey = "glossdesk-appointments-v3";
 const employeeStorageKey = "glossdesk-employees-v1";
 const customerStorageKey = "glossdesk-customers-v1";
+const paymentStorageKey = "glossdesk-payments-v1";
 const importedKey = "glossdesk-import-count-v1";
 const googleCalendarChoiceKey = "glossdesk-google-calendar-choice-v1";
 const migrationLogKey = "glossdesk-migration-log-v1";
@@ -32,11 +33,29 @@ const reports = [
   { label: "Retail", value: 35, amount: "$4.8k" }
 ];
 
+const serviceCatalog = [
+  { name: "Gloss and style", price: 125, deposit: 35 },
+  { name: "Balayage consult", price: 85, deposit: 25 },
+  { name: "Cut and blowout", price: 95, deposit: 25 },
+  { name: "Root touch-up", price: 145, deposit: 45 },
+  { name: "Color consult", price: 75, deposit: 20 },
+  { name: "Treatment", price: 65, deposit: 20 }
+];
+
+const paymentMethods = [
+  { value: "square-card", label: "Square card" },
+  { value: "square-google-pay", label: "Google Pay via Square" },
+  { value: "stripe-card", label: "Stripe card" },
+  { value: "cash", label: "Cash" },
+  { value: "gift-card", label: "Gift card" }
+];
+
 const viewTitles = {
   schedule: "Scheduling Studio",
   dashboard: "Front Desk Command Center",
   clients: "Client CRM",
   employees: "Employee Management",
+  payments: "Payments & Checkout",
   email: "Email Hub",
   integrations: "Calendar Integrations",
   migration: "Switch CRM",
@@ -67,6 +86,7 @@ let appointments = loadAppointments();
 let employees = loadEmployees();
 let stylists = activeStylistNames();
 let customers = loadCustomers();
+let payments = loadPayments();
 let selectedId = appointments[0]?.id || null;
 let googleCalendarChoices = [];
 let pendingSlot = null;
@@ -153,6 +173,55 @@ function loadCustomers() {
 
 function saveCustomers() {
   localStorage.setItem(customerStorageKey, JSON.stringify(customers));
+}
+
+function loadPayments() {
+  try {
+    return JSON.parse(localStorage.getItem(paymentStorageKey)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function savePayments() {
+  localStorage.setItem(paymentStorageKey, JSON.stringify(payments));
+}
+
+function serviceDetails(serviceName) {
+  return serviceCatalog.find(service => service.name.toLowerCase() === String(serviceName || "").toLowerCase()) || {
+    name: serviceName || "Custom service",
+    price: 95,
+    deposit: 25
+  };
+}
+
+function appointmentPayments(appointmentId) {
+  return payments.filter(payment => payment.appointmentId === appointmentId);
+}
+
+function paidTotal(appointmentId) {
+  return appointmentPayments(appointmentId)
+    .filter(payment => payment.status !== "Refunded")
+    .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+}
+
+function refundTotal(appointmentId) {
+  return appointmentPayments(appointmentId)
+    .filter(payment => payment.status === "Refunded")
+    .reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+}
+
+function paymentStatus(appointment) {
+  if (!appointment) return "No appointment";
+  const service = serviceDetails(appointment.service);
+  const paid = paidTotal(appointment.id);
+  if (paid >= service.price) return "Paid";
+  if (paid > 0) return "Deposit paid";
+  return "Unpaid";
+}
+
+function formatMoney(value) {
+  return `$${Number(value || 0).toFixed(2)}`;
 }
 
 function upsertCustomer(customer) {
@@ -662,7 +731,9 @@ function renderSelected() {
     return;
   }
   qs("#selected-title").textContent = appointmentSummary(appointment);
-  qs("#selected-detail").textContent = `${formatDateRange(appointment)} with ${appointment.stylist}. ${appointment.phone ? `Phone ${appointment.phone}. ` : ""}${appointment.notes || ""}`;
+  const service = serviceDetails(appointment.service);
+  const paid = paidTotal(appointment.id);
+  qs("#selected-detail").textContent = `${formatDateRange(appointment)} with ${appointment.stylist}. ${paymentStatus(appointment)}: ${formatMoney(paid)} of ${formatMoney(service.price)}. ${appointment.phone ? `Phone ${appointment.phone}. ` : ""}${appointment.notes || ""}`;
 }
 
 function handleBookingSubmit(event) {
@@ -1094,6 +1165,101 @@ function selectEmail(index = 0) {
   `;
 }
 
+function renderPayments() {
+  const appointment = selectedAppointment();
+  const service = serviceDetails(appointment?.service);
+  const paid = appointment ? paidTotal(appointment.id) : 0;
+  const balance = Math.max(0, Number(service.price || 0) - paid);
+  const appointmentList = appointments.map(item => `
+    <button class="payment-appointment ${item.id === selectedId ? "active" : ""}" data-payment-appointment="${escapeHtml(item.id)}">
+      <strong>${escapeHtml(item.client)}</strong>
+      <span>${escapeHtml(item.service)} - ${paymentStatus(item)}</span>
+      <span>${formatDateRange(item)}</span>
+    </button>
+  `).join("");
+
+  qs("#payment-appointment-list").innerHTML = appointmentList;
+  qs("#payment-title").textContent = appointment ? `${appointment.client} checkout` : "Select an appointment";
+  qs("#payment-detail").textContent = appointment
+    ? `${appointment.service} with ${appointment.stylist}. ${formatMoney(paid)} paid, ${formatMoney(balance)} balance.`
+    : "Choose a booking to take a deposit or checkout payment.";
+
+  qs("#payment-service-price").value = Number(service.price || 0).toFixed(2);
+  qs("#payment-deposit").value = Number(service.deposit || 0).toFixed(2);
+  qs("#payment-amount").value = balance ? Math.min(balance, Number(service.deposit || balance)).toFixed(2) : "0.00";
+  qs("#payment-method").innerHTML = paymentMethods.map(method => `<option value="${method.value}">${method.label}</option>`).join("");
+
+  const history = appointment ? appointmentPayments(appointment.id) : payments.slice(-6).reverse();
+  qs("#payment-history").innerHTML = history.length ? history.map(payment => `
+    <article class="payment-row ${payment.status === "Refunded" ? "refunded" : ""}">
+      <div>
+        <strong>${formatMoney(payment.amount)} ${escapeHtml(payment.status)}</strong>
+        <span class="subline">${escapeHtml(payment.methodLabel)} - ${escapeHtml(payment.client)} - ${escapeHtml(payment.date)}</span>
+      </div>
+      ${payment.status !== "Refunded" ? `<button class="secondary-button" data-refund-payment="${escapeHtml(payment.id)}">Refund</button>` : ""}
+    </article>
+  `).join("") : `<p class="subline">No payments recorded for this appointment yet.</p>`;
+
+  const totalCollected = payments.filter(payment => payment.status !== "Refunded").reduce((sum, payment) => sum + Number(payment.amount), 0);
+  const outstanding = appointments.reduce((sum, item) => {
+    const details = serviceDetails(item.service);
+    return sum + Math.max(0, details.price - paidTotal(item.id));
+  }, 0);
+  qs("#payment-summary").innerHTML = `
+    <div><strong>${formatMoney(totalCollected)}</strong><span>Collected</span></div>
+    <div><strong>${formatMoney(outstanding)}</strong><span>Open balance</span></div>
+    <div><strong>${payments.length}</strong><span>Transactions</span></div>
+  `;
+}
+
+function recordPayment(type = "Payment") {
+  const appointment = selectedAppointment();
+  if (!appointment) return showToast("Select an appointment first.");
+  const amount = Number(qs("#payment-amount").value);
+  if (!amount || amount <= 0) return showToast("Enter a payment amount.");
+  const method = paymentMethods.find(item => item.value === qs("#payment-method").value) || paymentMethods[0];
+  const payment = {
+    id: `pay-${Date.now()}`,
+    appointmentId: appointment.id,
+    client: appointment.client,
+    amount,
+    method: method.value,
+    methodLabel: method.label,
+    status: type,
+    date: new Date().toLocaleString()
+  };
+  payments.push(payment);
+  savePayments();
+  renderAll();
+  showToast(`${type} recorded with ${method.label}.`);
+}
+
+function refundPayment(id) {
+  const payment = payments.find(item => item.id === id);
+  if (!payment || payment.status === "Refunded") return;
+  payments.push({
+    ...payment,
+    id: `refund-${Date.now()}`,
+    status: "Refunded",
+    date: new Date().toLocaleString()
+  });
+  savePayments();
+  renderAll();
+  showToast("Refund recorded.");
+}
+
+function handlePaymentClick(event) {
+  const appointmentId = event.target.closest("[data-payment-appointment]")?.dataset.paymentAppointment;
+  if (appointmentId) {
+    selectAppointment(appointmentId);
+    switchView("payments");
+    return;
+  }
+
+  const refundId = event.target.closest("[data-refund-payment]")?.dataset.refundPayment;
+  if (refundId) refundPayment(refundId);
+}
+
 function renderReports() {
   qs("#bar-chart").innerHTML = reports.map(row => `
     <div class="bar-row">
@@ -1137,6 +1303,7 @@ function renderAll() {
   renderClients();
   renderEmployees();
   renderEmail();
+  renderPayments();
   renderReports();
   renderMigration();
   renderMetrics();
@@ -1156,6 +1323,10 @@ function init() {
   qs("#employee-form").addEventListener("submit", handleEmployeeSubmit);
   qs("#clear-employee-form").addEventListener("click", clearEmployeeForm);
   qs("#employee-list").addEventListener("click", handleEmployeeListClick);
+  qs("#payment-appointment-list").addEventListener("click", handlePaymentClick);
+  qs("#payment-history").addEventListener("click", handlePaymentClick);
+  qs("#take-deposit").addEventListener("click", () => recordPayment("Deposit"));
+  qs("#take-payment").addEventListener("click", () => recordPayment("Paid"));
   qs("#new-appointment").addEventListener("click", () => {
     switchView("schedule");
     clearForm();
@@ -1178,6 +1349,7 @@ function init() {
   qs("#reset-demo").addEventListener("click", () => {
     appointments = seedAppointments.map(item => ({ ...item }));
     employees = seedEmployees.map(item => ({ ...item }));
+    payments = [];
     saveEmployees();
     customers = customersFromAppointments(appointments);
     selectedId = appointments[0].id;
@@ -1186,6 +1358,7 @@ function init() {
     localStorage.removeItem(migrationLogKey);
     saveAppointments();
     saveCustomers();
+    savePayments();
     renderAll();
     fillForm(selectedAppointment());
     showToast("Demo data reset.");

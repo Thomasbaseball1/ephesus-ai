@@ -485,7 +485,7 @@ textarea {
   font-size: clamp(28px, 5vw, 46px);
 }
 
-.metrics-grid, .split-layout, .integration-grid, .migration-layout, .employee-layout {
+.metrics-grid, .split-layout, .integration-grid, .migration-layout, .employee-layout, .payment-layout {
   display: grid;
   gap: 16px;
   margin-top: 16px;
@@ -524,7 +524,8 @@ textarea {
   grid-template-columns: 1.25fr .75fr;
 }
 
-.employee-layout {
+.employee-layout,
+.payment-layout {
   grid-template-columns: minmax(0, 1fr) 420px;
 }
 
@@ -543,7 +544,8 @@ textarea {
 
 .migration-score,
 .migration-log-grid,
-.employee-summary {
+.employee-summary,
+.payment-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
@@ -552,6 +554,7 @@ textarea {
 .migration-score div,
 .migration-log-grid div,
 .employee-summary div,
+.payment-summary div,
 .field-map-row {
   padding: 12px;
   border: 1px solid var(--line);
@@ -561,7 +564,8 @@ textarea {
 
 .migration-score strong,
 .migration-log-grid strong,
-.employee-summary strong {
+.employee-summary strong,
+.payment-summary strong {
   display: block;
   margin-bottom: 4px;
   font-size: 24px;
@@ -569,7 +573,8 @@ textarea {
 
 .migration-score span,
 .migration-log-grid span,
-.employee-summary span {
+.employee-summary span,
+.payment-summary span {
   color: var(--muted);
   font-size: 12px;
   font-weight: 800;
@@ -673,7 +678,7 @@ textarea {
   text-decoration: none;
 }
 
-.client-row, .email-row, .employee-row {
+.client-row, .email-row, .employee-row, .payment-appointment, .payment-row {
   display: grid;
   gap: 4px;
   width: 100%;
@@ -685,7 +690,7 @@ textarea {
   text-align: left;
 }
 
-.client-row.active, .email-row.active {
+.client-row.active, .email-row.active, .payment-appointment.active {
   border-color: var(--green);
   background: var(--green-soft);
 }
@@ -704,6 +709,15 @@ textarea {
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.payment-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.payment-row.refunded {
+  opacity: .66;
 }
 
 .subline {
@@ -770,7 +784,7 @@ textarea {
   .app-shell { grid-template-columns: 88px minmax(0, 1fr); }
   .brand div:not(.brand-mark), .nav-item span, .sync-card p, .sync-card strong { display: none; }
   .nav-item { justify-content: center; }
-  .schedule-layout, .split-layout, .integration-grid, .migration-layout, .employee-layout { grid-template-columns: 1fr; }
+  .schedule-layout, .split-layout, .integration-grid, .migration-layout, .employee-layout, .payment-layout { grid-template-columns: 1fr; }
   .booking-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -830,7 +844,7 @@ textarea {
   }
   .calendar-grid { grid-template-columns: 68px repeat(4, 180px); }
   .booking-panel, .metrics-grid { grid-template-columns: 1fr; }
-  .form-row, .button-row, .action-grid, .profile-grid, .field-map, .migration-score, .migration-log-grid, .employee-summary, .employee-row { grid-template-columns: 1fr; }
+  .form-row, .button-row, .action-grid, .profile-grid, .field-map, .migration-score, .migration-log-grid, .employee-summary, .payment-summary, .employee-row, .payment-row { grid-template-columns: 1fr; }
   .employee-actions { justify-content: stretch; }
   .employee-actions button { width: 100%; }
 }
