@@ -35,6 +35,7 @@ const viewTitles = {
 let appointments = loadAppointments();
 let selectedId = appointments[0]?.id || null;
 let googleCalendarChoices = [];
+let pendingSlot = null;
 
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
@@ -234,7 +235,7 @@ function renderSchedule() {
       const slotStart = `${String(hourNumber).padStart(2, "0")}:00`;
       const matches = appointments.filter(item => item.date === "2026-06-28" && item.stylist === stylist && Number(item.start.split(":")[0]) === hourNumber);
       chunks.push(`
-        <div class="calendar-cell" data-slot-date="2026-06-28" data-slot-start="${slotStart}" data-slot-stylist="${stylist}" tabindex="0" role="button" aria-label="Create booking with ${stylist} at ${formatHourLabel(slotStart)}">
+        <div class="calendar-cell ${pendingSlot?.stylist === stylist && pendingSlot?.start === slotStart ? "slot-selected" : ""}" data-slot-date="2026-06-28" data-slot-start="${slotStart}" data-slot-stylist="${stylist}" tabindex="0" role="button" aria-label="Create booking with ${stylist} at ${formatHourLabel(slotStart)}">
           ${matches.map(renderBookingCard).join("")}
           <span class="slot-button" aria-hidden="true">
             <span>+</span> Book ${formatHourLabel(slotStart)}
@@ -267,6 +268,7 @@ function renderBookingCard(appointment) {
 
 function selectAppointment(id) {
   selectedId = id;
+  pendingSlot = null;
   const appointment = selectedAppointment();
   if (!appointment) return;
   fillForm(appointment);
@@ -304,6 +306,7 @@ function clearForm() {
 
 function selectSlot({ date, start, stylist }) {
   selectedId = null;
+  pendingSlot = { date, start, stylist };
   clearForm();
   qs("#form-heading").textContent = `New booking with ${stylist}`;
   qs("#stylist-input").value = stylist;
@@ -313,6 +316,7 @@ function selectSlot({ date, start, stylist }) {
   renderSchedule();
   renderSelected();
   qs("#client-input").focus();
+  qs(".booking-panel").scrollIntoView({ behavior: "smooth", block: "start" });
   showToast(`${stylist} selected for ${formatHourLabel(start)}.`);
 }
 
@@ -646,6 +650,7 @@ function init() {
   qs("#reset-demo").addEventListener("click", () => {
     appointments = seedAppointments.map(item => ({ ...item }));
     selectedId = appointments[0].id;
+    pendingSlot = null;
     localStorage.removeItem(importedKey);
     saveAppointments();
     renderAll();

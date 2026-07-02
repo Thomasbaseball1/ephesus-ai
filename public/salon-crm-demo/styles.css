@@ -305,6 +305,17 @@ h2 { margin-bottom: 10px; font-size: 20px; letter-spacing: 0; }
   box-shadow: inset 0 0 0 3px rgba(39,102,83,.24);
 }
 
+.calendar-cell.slot-selected {
+  background: var(--green-soft);
+  box-shadow: inset 0 0 0 3px rgba(39,102,83,.28);
+}
+
+.calendar-cell.slot-selected .slot-button {
+  border-color: rgba(39,102,83,.55);
+  background: #fffefa;
+  opacity: 1;
+}
+
 .slot-button {
   display: inline-flex;
   align-items: center;
