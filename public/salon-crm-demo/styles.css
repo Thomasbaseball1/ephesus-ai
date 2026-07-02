@@ -240,6 +240,19 @@ h2 { margin-bottom: 10px; font-size: 20px; letter-spacing: 0; }
   border-bottom: 1px solid var(--line);
 }
 
+.date-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.date-nav input {
+  width: 150px;
+  min-height: 38px;
+}
+
 .segmented {
   display: inline-grid;
   grid-auto-flow: column;
@@ -312,6 +325,10 @@ h2 { margin-bottom: 10px; font-size: 20px; letter-spacing: 0; }
 
 .calendar-cell.blocked-slot {
   background: #f8f1ea;
+}
+
+.calendar-cell.current-date-cell {
+  box-shadow: inset 0 0 0 2px rgba(61,111,146,.24);
 }
 
 .calendar-cell.slot-selected .slot-button {
@@ -391,6 +408,17 @@ h2 { margin-bottom: 10px; font-size: 20px; letter-spacing: 0; }
 
 .booking-card strong { font-size: 14px; }
 .booking-card span { color: var(--muted); font-size: 12px; }
+
+.week-cell,
+.team-cell {
+  min-height: 118px;
+}
+
+.team-name {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+}
 
 .availability-block {
   display: grid;

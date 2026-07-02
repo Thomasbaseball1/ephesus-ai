@@ -96,6 +96,8 @@ let timeOffBlocks = loadTimeOffBlocks();
 let selectedId = appointments[0]?.id || null;
 let googleCalendarChoices = [];
 let pendingSlot = null;
+let currentScheduleDate = "2026-06-28";
+let calendarMode = "day";
 syncCustomersFromAppointments();
 
 const qs = (selector) => document.querySelector(selector);
@@ -255,6 +257,43 @@ function minutesFromTime(time) {
 
 function weekdayLabel(dateString) {
   return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(`${dateString}T00:00:00`).getDay()];
+}
+
+function parseLocalDate(dateString) {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function localDateString(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function addDays(dateString, days) {
+  const date = parseLocalDate(dateString);
+  date.setDate(date.getDate() + days);
+  return localDateString(date);
+}
+
+function startOfWeek(dateString) {
+  const date = parseLocalDate(dateString);
+  date.setDate(date.getDate() - date.getDay());
+  return localDateString(date);
+}
+
+function weekDates(dateString = currentScheduleDate) {
+  const start = startOfWeek(dateString);
+  return Array.from({ length: 7 }, (_, index) => addDays(start, index));
+}
+
+function formatCalendarDate(dateString, style = "long") {
+  const date = parseLocalDate(dateString);
+  return date.toLocaleDateString([], style === "short"
+    ? { weekday: "short", month: "short", day: "numeric" }
+    : { weekday: "long", month: "long", day: "numeric" });
+}
+
+function scheduleHours() {
+  return ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
 }
 
 function upsertCustomer(customer) {
@@ -630,35 +669,120 @@ async function loadGoogleCalendars() {
 }
 
 function renderSchedule() {
-  const hours = ["9:00", "10:00", "11:00", "12:00", "1:00", "2:00", "3:00", "4:00", "5:00"];
-  const chunks = [`<div class="grid-head">Time</div>`, ...stylists.map(stylist => `<div class="grid-head">${stylist}</div>`)];
+  renderCalendarHeader();
+  if (calendarMode === "week") return renderWeekSchedule();
+  if (calendarMode === "team") return renderTeamSchedule();
+  return renderDaySchedule();
+}
 
-  hours.forEach(hour => {
-    chunks.push(`<div class="time-cell">${hour}</div>`);
-    stylists.forEach(stylist => {
-      const displayHour = Number(hour.split(":")[0]);
-      const hourNumber = displayHour >= 1 && displayHour <= 5 ? displayHour + 12 : displayHour;
-      const slotStart = `${String(hourNumber).padStart(2, "0")}:00`;
-      const slotAppointment = { id: "slot-preview", date: "2026-06-28", start: slotStart, duration: 60, stylist };
-      const matches = appointments.filter(item => (
-        item.date === "2026-06-28" &&
-        item.stylist === stylist &&
-        appointmentsOverlap(slotAppointment, item)
-      ));
-      const availabilityConflict = findAvailabilityConflict(slotAppointment);
+function renderCalendarHeader() {
+  const dates = weekDates();
+  qs("#calendar-date").value = currentScheduleDate;
+  qsa("[data-calendar-mode]").forEach(button => button.classList.toggle("selected", button.dataset.calendarMode === calendarMode));
+  if (calendarMode === "week") {
+    qs("#calendar-eyebrow").textContent = "Week view";
+    qs("#calendar-title").textContent = `${formatCalendarDate(dates[0], "short")} - ${formatCalendarDate(dates[6], "short")}`;
+    return;
+  }
+  if (calendarMode === "team") {
+    qs("#calendar-eyebrow").textContent = "Team view";
+    qs("#calendar-title").textContent = `${formatCalendarDate(dates[0], "short")} - ${formatCalendarDate(dates[6], "short")}`;
+    return;
+  }
+  qs("#calendar-eyebrow").textContent = currentScheduleDate === "2026-06-28" ? "Today" : "Selected day";
+  qs("#calendar-title").textContent = formatCalendarDate(currentScheduleDate);
+}
+
+function setCalendarGrid(columns, chunks, mode) {
+  const grid = qs("#calendar-grid");
+  grid.className = `calendar-grid ${mode}-calendar`;
+  grid.style.gridTemplateColumns = columns;
+  grid.innerHTML = chunks.join("");
+}
+
+function renderDaySchedule() {
+  const chunks = [`<div class="grid-head">Time</div>`, ...stylists.map(stylist => `<div class="grid-head">${escapeHtml(stylist)}</div>`)];
+  scheduleHours().forEach(slotStart => {
+    chunks.push(`<div class="time-cell">${formatHourLabel(slotStart)}</div>`);
+    stylists.forEach(stylist => chunks.push(renderSlotCell(currentScheduleDate, slotStart, stylist)));
+  });
+  setCalendarGrid(`76px repeat(${stylists.length}, minmax(150px, 1fr))`, chunks, "day");
+}
+
+function renderWeekSchedule() {
+  const dates = weekDates();
+  const chunks = [`<div class="grid-head">Time</div>`, ...dates.map(date => `<div class="grid-head">${formatCalendarDate(date, "short")}</div>`)];
+  scheduleHours().forEach(slotStart => {
+    chunks.push(`<div class="time-cell">${formatHourLabel(slotStart)}</div>`);
+    dates.forEach(date => {
+      const stylist = firstAvailableStylist(date, slotStart) || stylists[0];
+      const matches = appointments.filter(item => item.date === date && Number(item.start.split(":")[0]) === Number(slotStart.split(":")[0]));
+      const timeOff = timeOffBlocks.filter(block => block.date === date && minutesFromTime(slotStart) < minutesFromTime(block.end) && minutesFromTime(slotStart) + 60 > minutesFromTime(block.start));
       chunks.push(`
-        <div class="calendar-cell ${availabilityConflict ? "blocked-slot" : ""} ${pendingSlot?.stylist === stylist && pendingSlot?.start === slotStart ? "slot-selected" : ""}" data-slot-date="2026-06-28" data-slot-start="${slotStart}" data-slot-stylist="${stylist}" tabindex="0" role="button" aria-label="Create booking with ${stylist} at ${formatHourLabel(slotStart)}">
+        <div class="calendar-cell week-cell ${date === currentScheduleDate ? "current-date-cell" : ""}" data-slot-date="${date}" data-slot-start="${slotStart}" data-slot-stylist="${escapeHtml(stylist)}" tabindex="0" role="button" aria-label="Create booking on ${formatCalendarDate(date, "short")} at ${formatHourLabel(slotStart)}">
           ${matches.map(renderBookingCard).join("")}
-          ${availabilityConflict ? renderAvailabilityBlock(availabilityConflict) : ""}
-          <span class="slot-button" aria-hidden="true">
-            <span>+</span> Book ${formatHourLabel(slotStart)}
-          </span>
+          ${timeOff.map(block => renderAvailabilityBlock({ type: "time-off", message: `${block.employee} ${formatHourLabel(block.start)}-${formatHourLabel(block.end)}: ${block.reason || "time off"}` })).join("")}
+          <span class="slot-button" aria-hidden="true"><span>+</span> Book ${formatHourLabel(slotStart)}</span>
         </div>
       `);
     });
   });
+  setCalendarGrid("76px repeat(7, minmax(170px, 1fr))", chunks, "week");
+}
 
-  qs("#calendar-grid").innerHTML = chunks.join("");
+function renderTeamSchedule() {
+  const dates = weekDates();
+  const chunks = [`<div class="grid-head">Team</div>`, ...dates.map(date => `<div class="grid-head">${formatCalendarDate(date, "short")}</div>`)];
+  stylists.forEach(stylist => {
+    chunks.push(`<div class="time-cell team-name">${escapeHtml(stylist)}</div>`);
+    dates.forEach(date => {
+      const start = firstBookableStart(date, stylist) || "09:00";
+      const employeeAppointments = appointments.filter(item => item.date === date && item.stylist === stylist);
+      const blocks = timeOffBlocks.filter(block => block.date === date && block.employee === stylist);
+      const offDayConflict = findAvailabilityConflict({ id: "team-preview", date, start, duration: 60, stylist });
+      chunks.push(`
+        <div class="calendar-cell team-cell ${offDayConflict ? "blocked-slot" : ""} ${date === currentScheduleDate ? "current-date-cell" : ""}" data-slot-date="${date}" data-slot-start="${start}" data-slot-stylist="${escapeHtml(stylist)}" tabindex="0" role="button" aria-label="Create booking with ${stylist} on ${formatCalendarDate(date, "short")}">
+          ${employeeAppointments.length ? employeeAppointments.map(renderBookingCard).join("") : `<p class="subline">No bookings</p>`}
+          ${blocks.map(block => renderAvailabilityBlock({ type: "time-off", message: `${formatHourLabel(block.start)}-${formatHourLabel(block.end)}: ${block.reason || "time off"}` })).join("")}
+          <span class="slot-button" aria-hidden="true"><span>+</span> Book first open</span>
+        </div>
+      `);
+    });
+  });
+  setCalendarGrid("120px repeat(7, minmax(170px, 1fr))", chunks, "team");
+}
+
+function renderSlotCell(date, slotStart, stylist) {
+  const slotAppointment = { id: "slot-preview", date, start: slotStart, duration: 60, stylist };
+  const matches = appointments.filter(item => (
+    item.date === date &&
+    item.stylist === stylist &&
+    appointmentsOverlap(slotAppointment, item)
+  ));
+  const availabilityConflict = findAvailabilityConflict(slotAppointment);
+  return `
+    <div class="calendar-cell ${availabilityConflict ? "blocked-slot" : ""} ${pendingSlot?.date === date && pendingSlot?.stylist === stylist && pendingSlot?.start === slotStart ? "slot-selected" : ""}" data-slot-date="${date}" data-slot-start="${slotStart}" data-slot-stylist="${escapeHtml(stylist)}" tabindex="0" role="button" aria-label="Create booking with ${stylist} at ${formatHourLabel(slotStart)} on ${formatCalendarDate(date, "short")}">
+      ${matches.map(renderBookingCard).join("")}
+      ${availabilityConflict ? renderAvailabilityBlock(availabilityConflict) : ""}
+      <span class="slot-button" aria-hidden="true">
+        <span>+</span> Book ${formatHourLabel(slotStart)}
+      </span>
+    </div>
+  `;
+}
+
+function firstAvailableStylist(date, start) {
+  return stylists.find(stylist => {
+    const draft = { id: "slot-preview", date, start, duration: 60, stylist };
+    return !findAvailabilityConflict(draft) && !findBookingConflict(draft);
+  });
+}
+
+function firstBookableStart(date, stylist) {
+  return scheduleHours().find(start => {
+    const draft = { id: "slot-preview", date, start, duration: 60, stylist };
+    return !findAvailabilityConflict(draft) && !findBookingConflict(draft);
+  });
 }
 
 function renderAvailabilityBlock(conflict) {
@@ -729,7 +853,7 @@ function clearForm() {
   qs("#phone-input").value = "";
   qs("#service-input").value = "";
   renderStylistOptions(stylists[0]);
-  qs("#date-input").value = "2026-06-28";
+  qs("#date-input").value = currentScheduleDate;
   qs("#start-input").value = "09:00";
   qs("#duration-input").value = "60";
   qs("#status-input").value = "Booked";
@@ -769,6 +893,22 @@ function selectSlot({ date, start, stylist }) {
   qs("#client-input").focus();
   qs(".booking-panel").scrollIntoView({ behavior: "smooth", block: "start" });
   showToast(`${stylist} selected for ${formatHourLabel(start)}.`);
+}
+
+function setScheduleDate(date) {
+  currentScheduleDate = date;
+  pendingSlot = null;
+  renderSchedule();
+}
+
+function changeScheduleDate(days) {
+  setScheduleDate(addDays(currentScheduleDate, calendarMode === "day" ? days : days * 7));
+}
+
+function setCalendarMode(mode) {
+  calendarMode = mode;
+  pendingSlot = null;
+  renderSchedule();
 }
 
 function handleCalendarClick(event) {
@@ -1461,6 +1601,10 @@ function renderAll() {
 function init() {
   renderStylistOptions(stylists[0]);
   qsa("[data-view]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.view)));
+  qsa("[data-calendar-mode]").forEach(button => button.addEventListener("click", () => setCalendarMode(button.dataset.calendarMode)));
+  qs("#previous-date").addEventListener("click", () => changeScheduleDate(-1));
+  qs("#next-date").addEventListener("click", () => changeScheduleDate(1));
+  qs("#calendar-date").addEventListener("change", event => setScheduleDate(event.target.value || currentScheduleDate));
   qs("#calendar-grid").addEventListener("click", handleCalendarClick);
   qs("#calendar-grid").addEventListener("keydown", handleCalendarKeydown);
   qs("#booking-form").addEventListener("submit", handleBookingSubmit);
@@ -1505,6 +1649,8 @@ function init() {
     saveEmployees();
     customers = customersFromAppointments(appointments);
     selectedId = appointments[0].id;
+    currentScheduleDate = "2026-06-28";
+    calendarMode = "day";
     pendingSlot = null;
     localStorage.removeItem(importedKey);
     localStorage.removeItem(migrationLogKey);

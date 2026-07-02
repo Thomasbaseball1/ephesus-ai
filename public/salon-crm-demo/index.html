@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css?v=20260702-availability" />
+    <link rel="stylesheet" href="./styles.css?v=20260702-calendar-modes" />
   </head>
   <body>
     <div class="app-shell">
@@ -60,13 +60,18 @@
             <section class="calendar-panel">
               <div class="calendar-header">
                 <div>
-                  <p class="eyebrow">Today</p>
-                  <h2>Sunday, June 28</h2>
+                  <p class="eyebrow" id="calendar-eyebrow">Today</p>
+                  <h2 id="calendar-title">Sunday, June 28</h2>
+                  <div class="date-nav">
+                    <button class="secondary-button" type="button" id="previous-date">Prev</button>
+                    <input id="calendar-date" type="date" value="2026-06-28" />
+                    <button class="secondary-button" type="button" id="next-date">Next</button>
+                  </div>
                 </div>
                 <div class="segmented">
-                  <button class="selected">Day</button>
-                  <button>Week</button>
-                  <button>Team</button>
+                  <button class="selected" data-calendar-mode="day">Day</button>
+                  <button data-calendar-mode="week">Week</button>
+                  <button data-calendar-mode="team">Team</button>
                 </div>
               </div>
               <div class="calendar-grid" id="calendar-grid"></div>
@@ -353,6 +358,6 @@
     </div>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="./app.js?v=20260702-availability"></script>
+    <script src="./app.js?v=20260702-calendar-modes"></script>
   </body>
 </html>
