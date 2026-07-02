@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const ADMIN_EMAIL = 'tmore.haller@yahoo.com';
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
