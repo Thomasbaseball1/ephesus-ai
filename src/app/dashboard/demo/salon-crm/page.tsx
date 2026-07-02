@@ -8,7 +8,7 @@ export default function DashboardSalonCrmDemoPage() {
       <DashboardPageHeader
         eyebrow="Interactive build demo"
         title="Salon Biz CRM"
-        description="Explore a hosted salon CRM demo with scheduling, clients, email, reports, and calendar handoff tools."
+        description="Explore a hosted salon CRM demo with scheduling, clients, employees, time-off blocking, payments, migration tools, and calendar handoff."
         icon={CalendarDays}
         status="Hosted"
       />
@@ -18,7 +18,7 @@ export default function DashboardSalonCrmDemoPage() {
           Demo changes are saved in this browser only, so you can create, edit, import, export, and reset freely.
         </p>
         <Link
-          href="/salon-crm-demo/index.html"
+          href="/salon-crm-demo/index.html?v=20260702-availability"
           target="_blank"
           className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
         >
@@ -29,7 +29,7 @@ export default function DashboardSalonCrmDemoPage() {
       <section className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 shadow-2xl shadow-slate-950/30">
         <iframe
           title="Salon Biz CRM interactive demo"
-          src="/salon-crm-demo/index.html"
+          src="/salon-crm-demo/index.html?v=20260702-availability"
           className="h-[820px] w-full border-0"
         />
       </section>
