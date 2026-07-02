@@ -27,7 +27,7 @@ const NAV_SECTIONS = [
     items: [
       { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
       { href: '/dashboard/receptionist', label: 'AI Receptionist', icon: Phone, badge: 'Live' },
-      { href: '/dashboard/demo', label: 'Demo Center', icon: MonitorPlay },
+      { href: '/dashboard/demo', label: 'Give it a Try', icon: MonitorPlay },
     ],
   },
   {

@@ -147,7 +147,7 @@ export default async function DashboardPage({
         <div className="dashboard-section-heading">
           <div>
             <p className="dashboard-kicker">Give it a try</p>
-            <h2>Interactive demos</h2>
+            <h2>Give it a Try</h2>
           </div>
           <span>Client portal demos</span>
         </div>

@@ -8,7 +8,7 @@ export default function DashboardDemoPage() {
     <div className="space-y-6">
       <DashboardPageHeader
         eyebrow="Give it a try"
-        title="Interactive demos"
+        title="Give it a Try"
         description="Try the AI conversation preview and hosted business app demos from your client portal."
         icon={MonitorPlay}
         status="Interactive"
