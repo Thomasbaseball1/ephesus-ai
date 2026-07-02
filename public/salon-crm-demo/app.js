@@ -245,23 +245,6 @@ function renderSchedule() {
   });
 
   qs("#calendar-grid").innerHTML = chunks.join("");
-  qsa("[data-appointment]").forEach(button => button.addEventListener("click", () => selectAppointment(button.dataset.appointment)));
-  qsa(".calendar-cell[data-slot-date]").forEach(cell => {
-    const chooseCell = () => selectSlot({
-      date: cell.dataset.slotDate,
-      start: cell.dataset.slotStart,
-      stylist: cell.dataset.slotStylist
-    });
-    cell.addEventListener("click", event => {
-      if (event.target.closest("[data-appointment]")) return;
-      chooseCell();
-    });
-    cell.addEventListener("keydown", event => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      chooseCell();
-    });
-  });
 }
 
 function formatHourLabel(time) {
@@ -331,6 +314,34 @@ function selectSlot({ date, start, stylist }) {
   renderSelected();
   qs("#client-input").focus();
   showToast(`${stylist} selected for ${formatHourLabel(start)}.`);
+}
+
+function handleCalendarClick(event) {
+  const appointmentButton = event.target.closest("[data-appointment]");
+  if (appointmentButton) {
+    selectAppointment(appointmentButton.dataset.appointment);
+    return;
+  }
+
+  const cell = event.target.closest(".calendar-cell[data-slot-date]");
+  if (!cell) return;
+  selectSlot({
+    date: cell.dataset.slotDate,
+    start: cell.dataset.slotStart,
+    stylist: cell.dataset.slotStylist
+  });
+}
+
+function handleCalendarKeydown(event) {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const cell = event.target.closest(".calendar-cell[data-slot-date]");
+  if (!cell) return;
+  event.preventDefault();
+  selectSlot({
+    date: cell.dataset.slotDate,
+    start: cell.dataset.slotStart,
+    stylist: cell.dataset.slotStylist
+  });
 }
 
 function deleteSelectedAppointment() {
@@ -608,6 +619,8 @@ function renderAll() {
 function init() {
   qs("#stylist-input").innerHTML = stylists.map(stylist => `<option>${stylist}</option>`).join("");
   qsa("[data-view]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.view)));
+  qs("#calendar-grid").addEventListener("click", handleCalendarClick);
+  qs("#calendar-grid").addEventListener("keydown", handleCalendarKeydown);
   qs("#booking-form").addEventListener("submit", handleBookingSubmit);
   qs("#clear-form").addEventListener("click", clearForm);
   qs("#delete-appointment").addEventListener("click", deleteSelectedAppointment);
