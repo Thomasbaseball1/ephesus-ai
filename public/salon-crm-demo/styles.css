@@ -310,6 +310,10 @@ h2 { margin-bottom: 10px; font-size: 20px; letter-spacing: 0; }
   box-shadow: inset 0 0 0 3px rgba(39,102,83,.28);
 }
 
+.calendar-cell.blocked-slot {
+  background: #f8f1ea;
+}
+
 .calendar-cell.slot-selected .slot-button {
   border-color: rgba(39,102,83,.55);
   background: #fffefa;
@@ -387,6 +391,23 @@ h2 { margin-bottom: 10px; font-size: 20px; letter-spacing: 0; }
 
 .booking-card strong { font-size: 14px; }
 .booking-card span { color: var(--muted); font-size: 12px; }
+
+.availability-block {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #edc9ad;
+  border-left: 4px solid #b96f2b;
+  border-radius: 7px;
+  background: #fff5e9;
+  color: #6f421b;
+  font-size: 12px;
+}
+
+.availability-block span {
+  color: #8a5a32;
+}
 
 .booking-panel {
   display: grid;
@@ -678,7 +699,7 @@ textarea {
   text-decoration: none;
 }
 
-.client-row, .email-row, .employee-row, .payment-appointment, .payment-row {
+.client-row, .email-row, .employee-row, .payment-appointment, .payment-row, .time-off-row {
   display: grid;
   gap: 4px;
   width: 100%;
@@ -712,6 +733,15 @@ textarea {
 }
 
 .payment-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.time-off-form {
+  margin-bottom: 16px;
+}
+
+.time-off-row {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
 }
@@ -844,7 +874,7 @@ textarea {
   }
   .calendar-grid { grid-template-columns: 68px repeat(4, 180px); }
   .booking-panel, .metrics-grid { grid-template-columns: 1fr; }
-  .form-row, .button-row, .action-grid, .profile-grid, .field-map, .migration-score, .migration-log-grid, .employee-summary, .payment-summary, .employee-row, .payment-row { grid-template-columns: 1fr; }
+  .form-row, .button-row, .action-grid, .profile-grid, .field-map, .migration-score, .migration-log-grid, .employee-summary, .payment-summary, .employee-row, .payment-row, .time-off-row { grid-template-columns: 1fr; }
   .employee-actions { justify-content: stretch; }
   .employee-actions button { width: 100%; }
 }

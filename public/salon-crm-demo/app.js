@@ -2,15 +2,20 @@ const storageKey = "glossdesk-appointments-v3";
 const employeeStorageKey = "glossdesk-employees-v1";
 const customerStorageKey = "glossdesk-customers-v1";
 const paymentStorageKey = "glossdesk-payments-v1";
+const timeOffStorageKey = "glossdesk-time-off-v1";
 const importedKey = "glossdesk-import-count-v1";
 const googleCalendarChoiceKey = "glossdesk-google-calendar-choice-v1";
 const migrationLogKey = "glossdesk-migration-log-v1";
 
 const seedEmployees = [
-  { id: "emp-1", name: "Jules", role: "Senior stylist", email: "jules@glossdesk.local", phone: "(555) 010-1401", status: "Active", services: "Gloss, color, bridal styling" },
-  { id: "emp-2", name: "Amara", role: "Color specialist", email: "amara@glossdesk.local", phone: "(555) 010-2208", status: "Active", services: "Balayage, blonding, consults" },
-  { id: "emp-3", name: "Kenji", role: "Cutting specialist", email: "kenji@glossdesk.local", phone: "(555) 010-3377", status: "Active", services: "Cuts, blowouts, texture" },
-  { id: "emp-4", name: "Sasha", role: "Stylist", email: "sasha@glossdesk.local", phone: "(555) 010-4489", status: "Active", services: "Color consults, treatments" }
+  { id: "emp-1", name: "Jules", role: "Senior stylist", email: "jules@glossdesk.local", phone: "(555) 010-1401", status: "Active", services: "Gloss, color, bridal styling", workStart: "09:00", workEnd: "17:00", workingDays: "Sun, Mon, Tue, Wed, Thu" },
+  { id: "emp-2", name: "Amara", role: "Color specialist", email: "amara@glossdesk.local", phone: "(555) 010-2208", status: "Active", services: "Balayage, blonding, consults", workStart: "10:00", workEnd: "18:00", workingDays: "Sun, Mon, Wed, Thu, Fri" },
+  { id: "emp-3", name: "Kenji", role: "Cutting specialist", email: "kenji@glossdesk.local", phone: "(555) 010-3377", status: "Active", services: "Cuts, blowouts, texture", workStart: "09:00", workEnd: "17:00", workingDays: "Sun, Tue, Wed, Fri, Sat" },
+  { id: "emp-4", name: "Sasha", role: "Stylist", email: "sasha@glossdesk.local", phone: "(555) 010-4489", status: "Active", services: "Color consults, treatments", workStart: "11:00", workEnd: "18:00", workingDays: "Sun, Mon, Tue, Thu, Sat" }
+];
+
+const seedTimeOff = [
+  { id: "off-1", employee: "Sasha", date: "2026-06-28", start: "15:00", end: "17:00", reason: "Personal appointment" }
 ];
 
 const seedAppointments = [
@@ -87,6 +92,7 @@ let employees = loadEmployees();
 let stylists = activeStylistNames();
 let customers = loadCustomers();
 let payments = loadPayments();
+let timeOffBlocks = loadTimeOffBlocks();
 let selectedId = appointments[0]?.id || null;
 let googleCalendarChoices = [];
 let pendingSlot = null;
@@ -110,7 +116,13 @@ function saveAppointments() {
 
 function loadEmployees() {
   try {
-    return JSON.parse(localStorage.getItem(employeeStorageKey)) || seedEmployees.map(item => ({ ...item }));
+    const saved = JSON.parse(localStorage.getItem(employeeStorageKey));
+    return (saved || seedEmployees).map((item, index) => ({
+      workStart: seedEmployees[index]?.workStart || "09:00",
+      workEnd: seedEmployees[index]?.workEnd || "17:00",
+      workingDays: seedEmployees[index]?.workingDays || "Sun, Mon, Tue, Wed, Thu, Fri",
+      ...item
+    }));
   } catch {
     return seedEmployees.map(item => ({ ...item }));
   }
@@ -124,6 +136,18 @@ function saveEmployees() {
 function activeStylistNames() {
   const active = employees.filter(employee => employee.status !== "Inactive").map(employee => employee.name);
   return active.length ? active : seedEmployees.map(employee => employee.name);
+}
+
+function loadTimeOffBlocks() {
+  try {
+    return JSON.parse(localStorage.getItem(timeOffStorageKey)) || seedTimeOff.map(item => ({ ...item }));
+  } catch {
+    return seedTimeOff.map(item => ({ ...item }));
+  }
+}
+
+function saveTimeOffBlocks() {
+  localStorage.setItem(timeOffStorageKey, JSON.stringify(timeOffBlocks));
 }
 
 function customerKey(name) {
@@ -224,6 +248,15 @@ function formatMoney(value) {
   return `$${Number(value || 0).toFixed(2)}`;
 }
 
+function minutesFromTime(time) {
+  const [hour, minute] = String(time || "00:00").split(":").map(Number);
+  return (hour * 60) + (minute || 0);
+}
+
+function weekdayLabel(dateString) {
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date(`${dateString}T00:00:00`).getDay()];
+}
+
 function upsertCustomer(customer) {
   if (!customer?.name) return;
   const key = customerKey(customer.name);
@@ -255,6 +288,9 @@ function ensureEmployeeForStylist(name) {
     email: "",
     phone: "",
     services: "Imported from CRM staff export",
+    workStart: "09:00",
+    workEnd: "17:00",
+    workingDays: "Sun, Mon, Tue, Wed, Thu, Fri",
     status: "Active"
   };
   employees.push(employee);
@@ -338,6 +374,41 @@ function findBookingConflict(appointment) {
 
 function conflictMessage(appointment, conflict) {
   return `${appointment.stylist} is already booked ${formatTime(toDate(conflict))}-${formatTime(toDate(conflict, true))} with ${conflict.client}.`;
+}
+
+function findAvailabilityConflict(appointment) {
+  const employee = employees.find(item => item.name === appointment.stylist);
+  if (!employee || employee.status === "Inactive") {
+    return { type: "inactive", message: `${appointment.stylist} is not active on the schedule.` };
+  }
+
+  const day = weekdayLabel(appointment.date);
+  const workingDays = String(employee.workingDays || "").split(",").map(item => item.trim());
+  if (!workingDays.includes(day)) {
+    return { type: "hours", message: `${employee.name} is not scheduled to work on ${day}.` };
+  }
+
+  const start = minutesFromTime(appointment.start);
+  const end = start + Number(appointment.duration || 60);
+  const workStart = minutesFromTime(employee.workStart || "09:00");
+  const workEnd = minutesFromTime(employee.workEnd || "17:00");
+  if (start < workStart || end > workEnd) {
+    return { type: "hours", message: `${employee.name} works ${formatHourLabel(employee.workStart)}-${formatHourLabel(employee.workEnd)}.` };
+  }
+
+  const block = timeOffBlocks.find(item => {
+    const blockStart = minutesFromTime(item.start);
+    const blockEnd = minutesFromTime(item.end);
+    return item.employee === appointment.stylist &&
+      item.date === appointment.date &&
+      start < blockEnd &&
+      end > blockStart;
+  });
+  if (block) {
+    return { type: "time-off", block, message: `${block.employee} is blocked off ${formatHourLabel(block.start)}-${formatHourLabel(block.end)} for ${block.reason || "time off"}.` };
+  }
+
+  return null;
 }
 
 function buildIcs(items) {
@@ -574,9 +645,11 @@ function renderSchedule() {
         item.stylist === stylist &&
         appointmentsOverlap(slotAppointment, item)
       ));
+      const availabilityConflict = findAvailabilityConflict(slotAppointment);
       chunks.push(`
-        <div class="calendar-cell ${pendingSlot?.stylist === stylist && pendingSlot?.start === slotStart ? "slot-selected" : ""}" data-slot-date="2026-06-28" data-slot-start="${slotStart}" data-slot-stylist="${stylist}" tabindex="0" role="button" aria-label="Create booking with ${stylist} at ${formatHourLabel(slotStart)}">
+        <div class="calendar-cell ${availabilityConflict ? "blocked-slot" : ""} ${pendingSlot?.stylist === stylist && pendingSlot?.start === slotStart ? "slot-selected" : ""}" data-slot-date="2026-06-28" data-slot-start="${slotStart}" data-slot-stylist="${stylist}" tabindex="0" role="button" aria-label="Create booking with ${stylist} at ${formatHourLabel(slotStart)}">
           ${matches.map(renderBookingCard).join("")}
+          ${availabilityConflict ? renderAvailabilityBlock(availabilityConflict) : ""}
           <span class="slot-button" aria-hidden="true">
             <span>+</span> Book ${formatHourLabel(slotStart)}
           </span>
@@ -586,6 +659,16 @@ function renderSchedule() {
   });
 
   qs("#calendar-grid").innerHTML = chunks.join("");
+}
+
+function renderAvailabilityBlock(conflict) {
+  const label = conflict.type === "time-off" ? "Time off" : "Unavailable";
+  return `
+    <div class="availability-block">
+      <strong>${label}</strong>
+      <span>${escapeHtml(conflict.message)}</span>
+    </div>
+  `;
 }
 
 function formatHourLabel(time) {
@@ -665,6 +748,11 @@ function selectSlot({ date, start, stylist }) {
   if (conflict) {
     selectAppointment(conflict.id);
     showToast(conflictMessage(draft, conflict));
+    return;
+  }
+  const availabilityConflict = findAvailabilityConflict(draft);
+  if (availabilityConflict) {
+    showToast(availabilityConflict.message);
     return;
   }
 
@@ -756,6 +844,12 @@ function handleBookingSubmit(event) {
   const conflict = findBookingConflict(appointment);
   if (conflict) {
     showToast(conflictMessage(appointment, conflict));
+    qs("#start-input").focus();
+    return;
+  }
+  const availabilityConflict = findAvailabilityConflict(appointment);
+  if (availabilityConflict) {
+    showToast(availabilityConflict.message);
     qs("#start-input").focus();
     return;
   }
@@ -926,6 +1020,11 @@ function handleCsvImport(file) {
         conflicts.push(`Row ${index + 2}: ${conflictMessage(appointment, conflict)}`);
         return;
       }
+      const availabilityConflict = findAvailabilityConflict(appointment);
+      if (availabilityConflict) {
+        conflicts.push(`Row ${index + 2}: ${availabilityConflict.message}`);
+        return;
+      }
       imported.push(appointment);
       appointments.push(appointment);
       upsertCustomer(customerFromAppointment(appointment));
@@ -1060,6 +1159,7 @@ function renderEmployees() {
       <div>
         <strong>${escapeHtml(employee.name)}</strong>
         <span class="subline">${escapeHtml(employee.role || "Stylist")} - ${escapeHtml(employee.status)}</span>
+        <span class="subline">Hours: ${formatHourLabel(employee.workStart || "09:00")}-${formatHourLabel(employee.workEnd || "17:00")} - ${escapeHtml(employee.workingDays || "No days set")}</span>
         <span class="subline">${escapeHtml(employee.phone || "No phone")} - ${escapeHtml(employee.email || "No email")}</span>
         <span class="subline">${escapeHtml(employee.services || "No services listed")}</span>
       </div>
@@ -1078,6 +1178,9 @@ function fillEmployeeForm(employee) {
   qs("#employee-email").value = employee.email || "";
   qs("#employee-phone").value = employee.phone || "";
   qs("#employee-services").value = employee.services || "";
+  qs("#employee-work-start").value = employee.workStart || "09:00";
+  qs("#employee-work-end").value = employee.workEnd || "17:00";
+  qs("#employee-working-days").value = employee.workingDays || "Sun, Mon, Tue, Wed, Thu";
   qs("#employee-status").value = employee.status || "Active";
   qs("#employee-form-title").textContent = "Edit employee";
 }
@@ -1089,6 +1192,9 @@ function clearEmployeeForm() {
   qs("#employee-email").value = "";
   qs("#employee-phone").value = "";
   qs("#employee-services").value = "";
+  qs("#employee-work-start").value = "09:00";
+  qs("#employee-work-end").value = "17:00";
+  qs("#employee-working-days").value = "Sun, Mon, Tue, Wed, Thu";
   qs("#employee-status").value = "Active";
   qs("#employee-form-title").textContent = "Add employee";
 }
@@ -1103,6 +1209,9 @@ function handleEmployeeSubmit(event) {
     email: qs("#employee-email").value.trim(),
     phone: qs("#employee-phone").value.trim(),
     services: qs("#employee-services").value.trim(),
+    workStart: qs("#employee-work-start").value || "09:00",
+    workEnd: qs("#employee-work-end").value || "17:00",
+    workingDays: qs("#employee-working-days").value.trim() || "Sun, Mon, Tue, Wed, Thu",
     status: qs("#employee-status").value
   };
   if (!employee.name) return showToast("Employee name is required.");
@@ -1135,6 +1244,45 @@ function handleEmployeeListClick(event) {
   renderStylistOptions(qs("#stylist-input").value);
   renderAll();
   showToast(`${employee.name} is now ${employee.status.toLowerCase()}.`);
+}
+
+function renderTimeOff() {
+  qs("#time-off-employee").innerHTML = employees.map(employee => `<option>${escapeHtml(employee.name)}</option>`).join("");
+  qs("#time-off-list").innerHTML = timeOffBlocks.length ? timeOffBlocks.map(block => `
+    <article class="time-off-row">
+      <div>
+        <strong>${escapeHtml(block.employee)} blocked</strong>
+        <span class="subline">${escapeHtml(block.date)} ${formatHourLabel(block.start)}-${formatHourLabel(block.end)} - ${escapeHtml(block.reason || "Time off")}</span>
+      </div>
+      <button class="secondary-button" data-delete-time-off="${escapeHtml(block.id)}">Remove</button>
+    </article>
+  `).join("") : `<p class="subline">No time-off blocks yet.</p>`;
+}
+
+function handleTimeOffSubmit(event) {
+  event.preventDefault();
+  const block = {
+    id: `off-${Date.now()}`,
+    employee: qs("#time-off-employee").value,
+    date: qs("#time-off-date").value,
+    start: qs("#time-off-start").value,
+    end: qs("#time-off-end").value,
+    reason: qs("#time-off-reason").value.trim() || "Time off"
+  };
+  if (minutesFromTime(block.end) <= minutesFromTime(block.start)) return showToast("Time off end must be after start.");
+  timeOffBlocks.push(block);
+  saveTimeOffBlocks();
+  renderAll();
+  showToast(`${block.employee}'s calendar is blocked.`);
+}
+
+function handleTimeOffClick(event) {
+  const id = event.target.closest("[data-delete-time-off]")?.dataset.deleteTimeOff;
+  if (!id) return;
+  timeOffBlocks = timeOffBlocks.filter(block => block.id !== id);
+  saveTimeOffBlocks();
+  renderAll();
+  showToast("Time-off block removed.");
 }
 
 function renderEmail() {
@@ -1302,6 +1450,7 @@ function renderAll() {
   renderCustomerOptions();
   renderClients();
   renderEmployees();
+  renderTimeOff();
   renderEmail();
   renderPayments();
   renderReports();
@@ -1323,6 +1472,8 @@ function init() {
   qs("#employee-form").addEventListener("submit", handleEmployeeSubmit);
   qs("#clear-employee-form").addEventListener("click", clearEmployeeForm);
   qs("#employee-list").addEventListener("click", handleEmployeeListClick);
+  qs("#time-off-form").addEventListener("submit", handleTimeOffSubmit);
+  qs("#time-off-list").addEventListener("click", handleTimeOffClick);
   qs("#payment-appointment-list").addEventListener("click", handlePaymentClick);
   qs("#payment-history").addEventListener("click", handlePaymentClick);
   qs("#take-deposit").addEventListener("click", () => recordPayment("Deposit"));
@@ -1349,6 +1500,7 @@ function init() {
   qs("#reset-demo").addEventListener("click", () => {
     appointments = seedAppointments.map(item => ({ ...item }));
     employees = seedEmployees.map(item => ({ ...item }));
+    timeOffBlocks = seedTimeOff.map(item => ({ ...item }));
     payments = [];
     saveEmployees();
     customers = customersFromAppointments(appointments);
@@ -1358,6 +1510,7 @@ function init() {
     localStorage.removeItem(migrationLogKey);
     saveAppointments();
     saveCustomers();
+    saveTimeOffBlocks();
     savePayments();
     renderAll();
     fillForm(selectedAppointment());

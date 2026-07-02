@@ -169,12 +169,34 @@
                   <label>Phone<input id="employee-phone" type="tel" placeholder="(555) 444-0101" /></label>
                 </div>
                 <label>Services<textarea id="employee-services" placeholder="Cuts, color, treatments"></textarea></label>
+                <div class="form-row">
+                  <label>Work start<input id="employee-work-start" type="time" value="09:00" /></label>
+                  <label>Work end<input id="employee-work-end" type="time" value="17:00" /></label>
+                </div>
+                <label>Working days<input id="employee-working-days" placeholder="Sun, Mon, Tue, Wed, Thu" /></label>
                 <label>Status<select id="employee-status"><option>Active</option><option>Inactive</option></select></label>
                 <div class="button-row">
                   <button class="primary-button" type="submit">Save employee</button>
                   <button class="secondary-button" type="button" id="clear-employee-form">New employee</button>
                 </div>
               </form>
+            </section>
+            <section class="panel-card wide-card">
+              <p class="eyebrow">Availability</p>
+              <h2>Time off and blocked calendar time</h2>
+              <form id="time-off-form" class="time-off-form">
+                <label>Employee<select id="time-off-employee"></select></label>
+                <div class="form-row">
+                  <label>Date<input id="time-off-date" type="date" value="2026-06-28" /></label>
+                  <label>Reason<input id="time-off-reason" placeholder="Vacation, lunch, training" /></label>
+                </div>
+                <div class="form-row">
+                  <label>Start<input id="time-off-start" type="time" value="13:00" /></label>
+                  <label>End<input id="time-off-end" type="time" value="14:00" /></label>
+                </div>
+                <button class="primary-button" type="submit">Block calendar time</button>
+              </form>
+              <div id="time-off-list"></div>
             </section>
           </div>
         </section>
