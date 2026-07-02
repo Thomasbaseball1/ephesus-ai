@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GlossDesk CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">G</div>
+          <div>
+            <strong>GlossDesk</strong>
+            <span>CRM + Scheduling</span>
+          </div>
+        </div>
+        <nav class="nav-list" aria-label="Main navigation">
+          <button class="nav-item active" data-view="schedule"><span>Calendar</span></button>
+          <button class="nav-item" data-view="dashboard"><span>Dashboard</span></button>
+          <button class="nav-item" data-view="clients"><span>Clients</span></button>
+          <button class="nav-item" data-view="email"><span>Email</span><em>12</em></button>
+          <button class="nav-item" data-view="integrations"><span>Integrations</span></button>
+          <button class="nav-item" data-view="reports"><span>Reports</span></button>
+        </nav>
+        <div class="sync-card">
+          <span class="sync-dot"></span>
+          <strong id="sync-summary">Calendar export ready</strong>
+          <p>Use Google links, Outlook links, .ics export, or .ics import from the browser.</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Salon operations</p>
+            <h1 id="view-title">Scheduling Studio</h1>
+          </div>
+          <div class="top-actions">
+            <label class="search">
+              <span>Search</span>
+              <input id="global-search" type="search" placeholder="Client, service, stylist, email" />
+            </label>
+            <button class="secondary-button" id="import-trigger">Import .ics</button>
+            <button class="primary-button" id="new-appointment">New booking</button>
+            <input id="ics-import" type="file" accept=".ics,text/calendar" hidden />
+          </div>
+        </header>
+
+        <section class="view active" id="schedule">
+          <div class="schedule-layout">
+            <section class="calendar-panel">
+              <div class="calendar-header">
+                <div>
+                  <p class="eyebrow">Today</p>
+                  <h2>Sunday, June 28</h2>
+                </div>
+                <div class="segmented">
+                  <button class="selected">Day</button>
+                  <button>Week</button>
+                  <button>Team</button>
+                </div>
+              </div>
+              <div class="calendar-grid" id="calendar-grid"></div>
+            </section>
+
+            <aside class="booking-panel">
+              <div class="panel-card">
+                <p class="eyebrow">Booking</p>
+                <h2 id="form-heading">Create appointment</h2>
+                <form id="booking-form">
+                  <input id="appointment-id" type="hidden" />
+                  <label>Client<input id="client-input" required placeholder="Maya Bennett" /></label>
+                  <label>Email<input id="email-input" type="email" placeholder="maya@example.com" /></label>
+                  <label>Service<input id="service-input" required placeholder="Gloss and style" /></label>
+                  <label>Stylist<select id="stylist-input"></select></label>
+                  <div class="form-row">
+                    <label>Date<input id="date-input" type="date" required /></label>
+                    <label>Start<input id="start-input" type="time" required /></label>
+                  </div>
+                  <div class="form-row">
+                    <label>Duration<select id="duration-input"><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="90">90 min</option><option value="120">120 min</option></select></label>
+                    <label>Status<select id="status-input"><option>Booked</option><option>Confirmed</option><option>Checked in</option><option>Needs reply</option></select></label>
+                  </div>
+                  <label>Notes<textarea id="notes-input" placeholder="Formula, preferences, reminders"></textarea></label>
+                  <div class="button-row">
+                    <button class="primary-button" type="submit">Save</button>
+                    <button class="secondary-button" type="button" id="clear-form">New</button>
+                  </div>
+                  <button class="danger-button" type="button" id="delete-appointment">Delete selected appointment</button>
+                </form>
+              </div>
+
+              <div class="panel-card">
+                <p class="eyebrow">Calendar actions</p>
+                <h2 id="selected-title">No appointment selected</h2>
+                <p id="selected-detail">Select a booking to send it to Google, Outlook, or export an .ics file.</p>
+                <div class="action-grid">
+                  <button id="google-link">Google Calendar</button>
+                  <button id="outlook-link">Outlook Calendar</button>
+                  <button id="download-ics">Download .ics</button>
+                  <button id="copy-summary">Copy summary</button>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="dashboard">
+          <div class="hero-band">
+            <img src="./assets/salon-interior.png" alt="Modern salon interior" />
+            <div>
+              <span>Live salon command center</span>
+              <h2>Schedule, client history, and follow-up in one place.</h2>
+              <p>Built for front desk workflows, not just pretty reporting.</p>
+            </div>
+          </div>
+          <div class="metrics-grid">
+            <article><span>Booked today</span><strong id="booked-metric">0</strong></article>
+            <article><span>Confirmed</span><strong id="confirmed-metric">0</strong></article>
+            <article><span>Needs reply</span><strong id="reply-metric">0</strong></article>
+            <article><span>Imported</span><strong id="imported-metric">0</strong></article>
+          </div>
+        </section>
+
+        <section class="view" id="clients">
+          <div class="split-layout">
+            <section class="panel-card">
+              <p class="eyebrow">CRM</p>
+              <h2>Clients</h2>
+              <div id="client-list"></div>
+            </section>
+            <section class="panel-card" id="client-profile"></section>
+          </div>
+        </section>
+
+        <section class="view" id="email">
+          <div class="split-layout">
+            <section class="panel-card">
+              <p class="eyebrow">Integrated email</p>
+              <h2>Inbox</h2>
+              <div id="inbox-list"></div>
+            </section>
+            <section class="panel-card" id="message-panel"></section>
+          </div>
+        </section>
+
+        <section class="view" id="integrations">
+          <div class="integration-grid">
+            <article class="panel-card">
+              <p class="eyebrow">Google Calendar</p>
+              <h2>One-click event creation</h2>
+              <p>Open selected appointments in Google Calendar with title, time, service, client, and notes prefilled. Two-way sync needs a Google Cloud OAuth client and Calendar API access.</p>
+              <button class="primary-button" data-open-selected="google">Open selected in Google</button>
+            </article>
+            <article class="panel-card">
+              <p class="eyebrow">Outlook Calendar</p>
+              <h2>Microsoft calendar handoff</h2>
+              <p>Open selected appointments in Outlook on the web with a prefilled booking draft. Two-way sync needs a Microsoft Entra app and Microsoft Graph calendar permissions.</p>
+              <button class="primary-button" data-open-selected="outlook">Open selected in Outlook</button>
+            </article>
+            <article class="panel-card">
+              <p class="eyebrow">ICS</p>
+              <h2>Portable calendar files</h2>
+              <p>Download every booking or import external `.ics` appointments into the schedule.</p>
+              <div class="button-row">
+                <button class="secondary-button" id="export-all">Export all .ics</button>
+                <button class="secondary-button" id="import-trigger-2">Import .ics</button>
+              </div>
+              <button class="danger-button" id="reset-demo">Reset demo data</button>
+            </article>
+            <article class="panel-card wide-card">
+              <p class="eyebrow">Live local mode</p>
+              <h2 id="live-status">Checking local server...</h2>
+              <p id="live-detail">The app can run from a local server so browser features behave more like a real app. Calendar drafts and .ics files work now; automatic Google/Outlook syncing is the next backend step.</p>
+              <ol class="setup-list">
+                <li>Google: create a Google Cloud project, enable Calendar API, configure OAuth, and add this local URL as an authorized origin.</li>
+                <li>Outlook: register a Microsoft Entra app, add Graph calendar permissions, and use OAuth authorization code flow.</li>
+                <li>Production: store provider tokens securely and save provider event IDs on each appointment.</li>
+              </ol>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="reports">
+          <div class="panel-card">
+            <p class="eyebrow">Performance</p>
+            <h2>Revenue by service</h2>
+            <div id="bar-chart"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js"></script>
+  </body>
+</html>

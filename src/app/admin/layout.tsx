@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { isAdminEmail } from '@/lib/admin-access';
-import { ArrowLeft, LockKeyhole, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, LockKeyhole, MonitorPlay, ShieldCheck } from 'lucide-react';
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -26,6 +26,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
         <div className="admin-topbar__account">
           <span><LockKeyhole /> {session.user.email}</span>
+          <Link href="/admin/demo"><MonitorPlay /> Demo</Link>
           <Link href="/dashboard"><ArrowLeft /> Client dashboard</Link>
         </div>
       </header>
