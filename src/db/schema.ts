@@ -90,6 +90,19 @@ export const outlookIntegrations = sqliteTable('outlook_integrations', {
   graphSubscriptionExpiry: text('graph_subscription_expiry'),
 });
 
+export const googleCalendarIntegrations = sqliteTable('google_calendar_integrations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  googleUserId: text('google_user_id').notNull(),
+  email: text('email').notNull(),
+  displayName: text('display_name'),
+  accessToken: text('access_token').notNull(),
+  refreshToken: text('refresh_token').notNull(),
+  expiresAt: integer('expires_at').notNull(),
+  scopes: text('scopes'),
+  connectedAt: text('connected_at').notNull(),
+});
+
 // ─── Voice Agent Tables ───────────────────────────────────────────────────────
 
 export const voiceAgentAssignments = sqliteTable('voice_agent_assignments', {

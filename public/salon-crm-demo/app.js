@@ -1,6 +1,7 @@
 const stylists = ["Jules", "Amara", "Kenji", "Sasha"];
 const storageKey = "glossdesk-appointments-v2";
 const importedKey = "glossdesk-import-count-v1";
+const googleCalendarChoiceKey = "glossdesk-google-calendar-choice-v1";
 
 const seedAppointments = [
   { id: "apt-1", client: "Maya Bennett", email: "maya@example.com", service: "Gloss and style", stylist: "Jules", date: "2026-06-28", start: "09:00", duration: 60, status: "Checked in", notes: "Prefers low-fragrance products. Reserve leave-in conditioner." },
@@ -33,6 +34,7 @@ const viewTitles = {
 
 let appointments = loadAppointments();
 let selectedId = appointments[0]?.id || null;
+let googleCalendarChoices = [];
 
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
@@ -145,6 +147,78 @@ function outlookCalendarUrl(appointment) {
     location: "Salon"
   });
   return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
+}
+
+function setGoogleStatus(message, tone = "ok") {
+  const status = qs("#google-calendar-status");
+  const mini = qs("#google-live-mini");
+  [status, mini].filter(Boolean).forEach(el => {
+    el.textContent = message;
+    el.classList.toggle("warning", tone === "warning");
+    el.classList.toggle("error", tone === "error");
+  });
+}
+
+function selectedGoogleCalendarChoice() {
+  const picker = qs("#google-calendar-picker");
+  if (!picker?.value) return null;
+  return googleCalendarChoices.find(choice => choice.value === picker.value) || null;
+}
+
+function renderGoogleCalendarPicker() {
+  const picker = qs("#google-calendar-picker");
+  const wrap = qs("#google-calendar-picker-wrap");
+  if (!picker || !wrap) return;
+
+  picker.innerHTML = googleCalendarChoices.map(choice => (
+    `<option value="${choice.value}">${choice.label}</option>`
+  )).join("");
+
+  const saved = localStorage.getItem(googleCalendarChoiceKey);
+  if (saved && googleCalendarChoices.some(choice => choice.value === saved)) {
+    picker.value = saved;
+  }
+
+  wrap.style.display = googleCalendarChoices.length ? "grid" : "none";
+}
+
+async function loadGoogleCalendars() {
+  setGoogleStatus("Checking Google Calendar connection...", "warning");
+
+  try {
+    const response = await fetch("/api/salon-crm/google-calendars", { credentials: "same-origin" });
+    if (response.status === 401) {
+      googleCalendarChoices = [];
+      renderGoogleCalendarPicker();
+      setGoogleStatus("Sign in to the Ephesus portal, then connect Google Calendar.", "warning");
+      return;
+    }
+    if (!response.ok) throw new Error("Calendar lookup failed");
+
+    const data = await response.json();
+    googleCalendarChoices = (data.integrations || []).flatMap(integration => (
+      (integration.calendars || []).map(calendar => ({
+        value: `${integration.id}||${calendar.id}`,
+        integrationId: integration.id,
+        calendarId: calendar.id,
+        label: `${calendar.summary || calendar.id} - ${integration.email}${calendar.primary ? " (primary)" : ""}`,
+      }))
+    ));
+
+    renderGoogleCalendarPicker();
+    if (!googleCalendarChoices.length) {
+      setGoogleStatus("No writable Google calendars connected yet.", "warning");
+      return;
+    }
+
+    const choice = selectedGoogleCalendarChoice();
+    setGoogleStatus(`Live Google sync ready: ${choice?.label || googleCalendarChoices[0].label}`);
+  } catch (error) {
+    console.error(error);
+    googleCalendarChoices = [];
+    renderGoogleCalendarPicker();
+    setGoogleStatus("Could not load Google calendars. Check OAuth setup and try Refresh.", "error");
+  }
 }
 
 function renderSchedule() {
@@ -263,9 +337,49 @@ function handleBookingSubmit(event) {
   showToast("Appointment saved locally.");
 }
 
+async function createSelectedGoogleEvent() {
+  const appointment = selectedAppointment();
+  if (!appointment) return showToast("Select an appointment first.");
+  const choice = selectedGoogleCalendarChoice();
+  if (!choice) {
+    showToast("Connect Google Calendar and choose a calendar first.");
+    switchView("integrations");
+    return;
+  }
+
+  try {
+    setGoogleStatus("Creating event in Google Calendar...", "warning");
+    const response = await fetch("/api/salon-crm/google-events", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        integrationId: choice.integrationId,
+        calendarId: choice.calendarId,
+        appointment,
+      }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Failed to create event");
+
+    setGoogleStatus(`Created in Google Calendar: ${choice.label}`);
+    if (data.htmlLink) window.open(data.htmlLink, "_blank", "noopener,noreferrer");
+    showToast("Google Calendar event created.");
+  } catch (error) {
+    console.error(error);
+    setGoogleStatus(error.message || "Failed to create Google Calendar event.", "error");
+    showToast(error.message || "Failed to create Google Calendar event.");
+  }
+}
+
 function openSelected(provider) {
   const appointment = selectedAppointment();
   if (!appointment) return showToast("Select an appointment first.");
+  if (provider === "google") {
+    createSelectedGoogleEvent();
+    return;
+  }
   const url = provider === "google" ? googleCalendarUrl(appointment) : outlookCalendarUrl(appointment);
   window.open(url, "_blank", "noopener,noreferrer");
   showToast(`Opened ${provider === "google" ? "Google" : "Outlook"} calendar draft.`);
@@ -460,6 +574,12 @@ function init() {
   qs("#outlook-link").addEventListener("click", () => openSelected("outlook"));
   qs("#download-ics").addEventListener("click", downloadSelectedIcs);
   qs("#copy-summary").addEventListener("click", copySelectedSummary);
+  qs("#refresh-google-calendars").addEventListener("click", loadGoogleCalendars);
+  qs("#google-calendar-picker").addEventListener("change", event => {
+    localStorage.setItem(googleCalendarChoiceKey, event.target.value);
+    const choice = selectedGoogleCalendarChoice();
+    if (choice) setGoogleStatus(`Live Google sync ready: ${choice.label}`);
+  });
   qs("#export-all").addEventListener("click", () => {
     downloadFile("glossdesk-appointments.ics", buildIcs(appointments));
     showToast("Exported all appointments.");
@@ -484,6 +604,7 @@ function init() {
   renderAll();
   if (selectedAppointment()) fillForm(selectedAppointment());
   checkLiveStatus();
+  loadGoogleCalendars();
 }
 
 init();

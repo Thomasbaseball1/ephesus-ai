@@ -7,9 +7,9 @@ export default function DashboardDemoPage() {
   return (
     <div className="space-y-6">
       <DashboardPageHeader
-        eyebrow="Live preview"
-        title="Demo center"
-        description="Try interactive Ephesus demos, including live AI conversations and hosted business app builds."
+        eyebrow="Give it a try"
+        title="Interactive demos"
+        description="Try the AI conversation preview and hosted business app demos from your client portal."
         icon={MonitorPlay}
         status="Interactive"
       />

@@ -10,6 +10,7 @@ import { OnboardingBanner } from '@/components/OnboardingBanner';
 import {
   Activity,
   ArrowRight,
+  CalendarDays,
   Check,
   ChevronRight,
   ClipboardList,
@@ -71,16 +72,6 @@ export default async function DashboardPage({
       description: 'Your channels move through configuration, testing, and refinement before launch.',
       href: '/dashboard/subscription',
       cta: 'Explore services',
-    },
-    {
-      title: 'Demo center',
-      eyebrow: 'Live preview',
-      icon: MonitorPlay,
-      status: 'Interactive',
-      tone: 'progress',
-      description: 'Try interactive Ephesus demos, including the Salon Biz CRM and AI conversation preview.',
-      href: '/dashboard/demo',
-      cta: 'Run demo',
     },
     {
       title: 'Client support',
@@ -149,6 +140,39 @@ export default async function DashboardPage({
               <div><Activity /> Implementation tracker active</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="dashboard-section-heading">
+          <div>
+            <p className="dashboard-kicker">Give it a try</p>
+            <h2>Interactive demos</h2>
+          </div>
+          <span>Client portal demos</span>
+        </div>
+        <div className="dashboard-status-grid">
+          <Link href="/dashboard/demo" className="dashboard-status-card" data-tone="progress">
+            <div className="dashboard-status-card__topline">
+              <span className="dashboard-status-card__icon"><MonitorPlay /></span>
+              <span className="dashboard-status-pill"><i /> Interactive</span>
+            </div>
+            <p className="dashboard-status-card__eyebrow">AI preview</p>
+            <h3>AI inquiry handler</h3>
+            <p>Generate a sample inbound conversation for any business description.</p>
+            <span className="dashboard-status-card__cta">Try AI demo <ArrowRight /></span>
+          </Link>
+
+          <Link href="/dashboard/demo/salon-crm" className="dashboard-status-card" data-tone="ready">
+            <div className="dashboard-status-card__topline">
+              <span className="dashboard-status-card__icon"><CalendarDays /></span>
+              <span className="dashboard-status-pill"><i /> Hosted</span>
+            </div>
+            <p className="dashboard-status-card__eyebrow">Business app demo</p>
+            <h3>Salon Biz CRM</h3>
+            <p>Open the live CRM demo with bookings, clients, email, reports, and Google Calendar sync.</p>
+            <span className="dashboard-status-card__cta">Open CRM demo <ArrowRight /></span>
+          </Link>
         </div>
       </section>
 

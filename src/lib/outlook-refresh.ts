@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 /** Refresh the access token for a given integration row if it's expired or expiring soon.
  *  Returns true if the token is valid (either was fresh or was refreshed successfully).
  *  Returns false if the refresh token itself is invalid/revoked — user must reconnect. */
-export async function ensureFreshToken(integrationId: string): Promise<boolean> {
+export async function ensureFreshToken(integrationId: number): Promise<boolean> {
   const [row] = await db
     .select()
     .from(outlookIntegrations)

@@ -1,5 +1,4 @@
 import { db } from '@/db';
-import Link from 'next/link';
 import {
   instagramIntegrations,
   outlookIntegrations,
@@ -16,7 +15,6 @@ import {
   CalendarDays,
   Instagram,
   Mail,
-  MonitorPlay,
   Phone,
   PlugZap,
   ShieldCheck,
@@ -116,20 +114,6 @@ export default async function AdminPage() {
             <ArrowUpRight />
           </div>
         ))}
-      </section>
-
-      <section className="admin-integration-group">
-        <h3><MonitorPlay /> Demo center</h3>
-        <div className="admin-empty-panel">
-          <span><Sparkles /></span>
-          <div>
-            <h3>Client portal AI demo</h3>
-            <p>Preview the interactive conversation generator your clients can access from their dashboard.</p>
-          </div>
-          <Link href="/admin/demo" className="admin-action-button ml-auto inline-flex items-center justify-center">
-            Open demo <ArrowUpRight />
-          </Link>
-        </div>
       </section>
 
       <section>

@@ -99,8 +99,9 @@
                 <p class="eyebrow">Calendar actions</p>
                 <h2 id="selected-title">No appointment selected</h2>
                 <p id="selected-detail">Select a booking to send it to Google, Outlook, or export an .ics file.</p>
+                <div class="google-live-mini" id="google-live-mini">Checking Google Calendar connection...</div>
                 <div class="action-grid">
-                  <button id="google-link">Google Calendar</button>
+                  <button id="google-link">Create in Google</button>
                   <button id="outlook-link">Outlook Calendar</button>
                   <button id="download-ics">Download .ics</button>
                   <button id="copy-summary">Copy summary</button>
@@ -153,9 +154,20 @@
           <div class="integration-grid">
             <article class="panel-card">
               <p class="eyebrow">Google Calendar</p>
-              <h2>One-click event creation</h2>
-              <p>Open selected appointments in Google Calendar with title, time, service, client, and notes prefilled. Two-way sync needs a Google Cloud OAuth client and Calendar API access.</p>
-              <button class="primary-button" data-open-selected="google">Open selected in Google</button>
+              <h2>Live calendar sync</h2>
+              <p>Connect one or more Google accounts, choose a writable calendar, and create the selected appointment as a real Google Calendar event.</p>
+              <div class="google-live-card">
+                <div id="google-calendar-status" class="google-calendar-status">Checking connection...</div>
+                <label id="google-calendar-picker-wrap" class="google-picker-wrap">
+                  Calendar
+                  <select id="google-calendar-picker"></select>
+                </label>
+                <div class="button-row">
+                  <a class="primary-button" id="google-connect" href="/api/integrations/google-calendar/connect?returnTo=/dashboard/demo/salon-crm">Connect Google</a>
+                  <button class="secondary-button" id="refresh-google-calendars">Refresh</button>
+                </div>
+                <button class="primary-button" data-open-selected="google">Create selected event</button>
+              </div>
             </article>
             <article class="panel-card">
               <p class="eyebrow">Outlook Calendar</p>

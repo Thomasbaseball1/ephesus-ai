@@ -477,6 +477,60 @@ textarea {
   line-height: 1.6;
 }
 
+.google-live-card,
+.google-live-mini {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.google-live-card {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.google-live-mini {
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.google-live-mini.warning,
+.google-calendar-status.warning {
+  background: #fff5e7;
+  color: #8a5a12;
+}
+
+.google-live-mini.error,
+.google-calendar-status.error {
+  background: #fff5f5;
+  color: #953737;
+}
+
+.google-calendar-status {
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--green-soft);
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.google-picker-wrap {
+  margin-top: 0;
+}
+
+.google-live-card .primary-button,
+.google-live-card .secondary-button {
+  text-decoration: none;
+}
+
 .client-row, .email-row {
   display: grid;
   gap: 4px;

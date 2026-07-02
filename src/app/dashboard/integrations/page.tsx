@@ -2,12 +2,13 @@ import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { db } from '@/db';
-import { outlookIntegrations, instagramIntegrations } from '@/db/schema';
+import { googleCalendarIntegrations, outlookIntegrations, instagramIntegrations } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { Card } from '@/components/ui/card';
 import { OutlookConnectButton } from '@/components/OutlookConnectButton';
+import { GoogleCalendarConnectButton } from '@/components/GoogleCalendarConnectButton';
 import { InstagramConnectButton } from '@/components/InstagramConnectButton';
-import { Mail, CheckCircle, AlertCircle, Plug, Users, Info } from 'lucide-react';
+import { CalendarDays, Mail, CheckCircle, AlertCircle, Plug, Users, Info } from 'lucide-react';
 import { ensureFreshToken } from '@/lib/outlook-refresh';
 import { DashboardPageHeader } from '@/components/DashboardPageHeader';
 
@@ -21,12 +22,14 @@ export default async function IntegrationsPage({
 
   const params = await searchParams;
 
-  const [[outlook], [instagram]] = await Promise.all([
+  const [[outlook], googleCalendars, [instagram]] = await Promise.all([
     db.select().from(outlookIntegrations).where(eq(outlookIntegrations.userId, session.user.id)).limit(1),
+    db.select().from(googleCalendarIntegrations).where(eq(googleCalendarIntegrations.userId, session.user.id)),
     db.select().from(instagramIntegrations).where(eq(instagramIntegrations.userId, session.user.id)).limit(1),
   ]);
 
   const isConnected = !!outlook;
+  const googleConnected = googleCalendars.length > 0;
   const igConnected = !!instagram;
 
   // Try to silently refresh the access token if it's expired/expiring.
@@ -52,7 +55,7 @@ export default async function IntegrationsPage({
         title="Integrations"
         description="Connect the business accounts and channels Ephesus AI uses to work on your behalf."
         icon={Plug}
-        status={`${Number(isConnected) + Number(igConnected)} connected`}
+        status={`${Number(isConnected) + googleCalendars.length + Number(igConnected)} connected`}
       />
 
       {/* Status toasts */}
@@ -66,6 +69,12 @@ export default async function IntegrationsPage({
         <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
           <CheckCircle className="w-4 h-4 flex-shrink-0" />
           Instagram connected successfully! New-follower automations are now active.
+        </div>
+      )}
+      {params.connected === 'google-calendar' && (
+        <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm">
+          <CheckCircle className="w-4 h-4 flex-shrink-0" />
+          Google Calendar connected successfully! The Salon Biz CRM demo can now create real events.
         </div>
       )}
       {params.disconnected === 'instagram' && (
@@ -83,10 +92,15 @@ export default async function IntegrationsPage({
           {params.error === 'instagram_not_configured' && 'Instagram integration is not yet configured. Please contact Ephesus AI support.'}
           {params.error === 'instagram_token_failed' && 'Failed to complete Instagram authorization. Please try again.'}
           {params.error === 'instagram_profile_failed' && 'Connected to Instagram but could not fetch profile. Please ensure you have a Business or Creator account.'}
+          {params.error === 'google_calendar_not_configured' && 'Google Calendar integration is not configured yet. Add Google OAuth credentials and try again.'}
+          {params.error === 'google_calendar_auth_failed' && 'Google Calendar authorization was declined or failed. Please try again.'}
+          {params.error === 'google_calendar_token_failed' && 'Failed to complete Google Calendar authorization. Please try again.'}
+          {params.error === 'google_calendar_profile_failed' && 'Connected to Google but could not fetch profile details. Please try again.'}
+          {params.error === 'google_calendar_refresh_missing' && 'Google did not return a refresh token. Reconnect and approve offline access.'}
           {params.error === 'instagram_no_business_account' && (
             <span>No Instagram Business or Creator account was found linked to a Facebook Page. In Instagram: <strong>Settings → Account → Linked accounts → Facebook</strong> and connect a Facebook Page (not just your personal profile), then try again.</span>
           )}
-          {!['microsoft_auth_failed','token_exchange_failed','instagram_auth_failed','instagram_not_configured','instagram_token_failed','instagram_profile_failed','instagram_no_business_account'].includes(params.error) && 'Something went wrong. Please try again.'}
+          {!['microsoft_auth_failed','token_exchange_failed','instagram_auth_failed','instagram_not_configured','instagram_token_failed','instagram_profile_failed','instagram_no_business_account','google_calendar_not_configured','google_calendar_auth_failed','google_calendar_token_failed','google_calendar_profile_failed','google_calendar_refresh_missing'].includes(params.error) && 'Something went wrong. Please try again.'}
         </div>
       )}
 
@@ -155,6 +169,65 @@ export default async function IntegrationsPage({
             {/* Button full-width on mobile */}
             <div className="mt-4 md:hidden">
               <OutlookConnectButton isConnected={isConnected} isExpired={isExpired} fullWidth />
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Google Calendar card */}
+      <Card className="p-5 md:p-6 gradient-border">
+        <div className="flex items-start gap-4">
+          <div className="w-11 h-11 md:w-12 md:h-12 rounded-2xl bg-[#1A73E8] flex items-center justify-center flex-shrink-0 shadow">
+            <CalendarDays className="w-6 h-6 text-white" />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="font-semibold text-base">Google Calendar</h2>
+                {googleConnected ? (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    {googleCalendars.length} connected
+                  </span>
+                ) : (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">
+                    Not connected
+                  </span>
+                )}
+              </div>
+              <div className="hidden md:block flex-shrink-0">
+                <GoogleCalendarConnectButton isConnected={false} />
+              </div>
+            </div>
+
+            <p className="text-sm text-muted-foreground mt-1">
+              Connect Gmail or Google Workspace calendars so the Salon Biz CRM demo can create real booking events.
+            </p>
+
+            {googleCalendars.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {googleCalendars.map(calendar => (
+                  <div key={calendar.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-secondary/30 px-3 py-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium">{calendar.email}</p>
+                      {calendar.displayName && <p className="text-xs text-muted-foreground">{calendar.displayName}</p>}
+                    </div>
+                    <GoogleCalendarConnectButton integrationId={calendar.id} isConnected />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {['Create events', 'Choose calendar', 'Multiple Google accounts'].map(p => (
+                <span key={p} className="text-xs px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">
+                  {p}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-4 md:hidden">
+              <GoogleCalendarConnectButton isConnected={false} fullWidth />
             </div>
           </div>
         </div>

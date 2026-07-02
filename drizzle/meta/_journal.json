@@ -15,6 +15,13 @@
       "when": 1761620251030,
       "tag": "0001_stormy_vanisher",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1782949200000,
+      "tag": "0003_google_calendar_integrations",
+      "breakpoints": true
     }
   ]
 }
