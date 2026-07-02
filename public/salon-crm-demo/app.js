@@ -60,7 +60,8 @@ function showToast(message) {
 }
 
 function selectedAppointment() {
-  return appointments.find(item => item.id === selectedId) || appointments[0] || null;
+  if (!selectedId) return null;
+  return appointments.find(item => item.id === selectedId) || null;
 }
 
 function toDate(appointment, end = false) {
@@ -233,11 +234,11 @@ function renderSchedule() {
       const slotStart = `${String(hourNumber).padStart(2, "0")}:00`;
       const matches = appointments.filter(item => item.date === "2026-06-28" && item.stylist === stylist && Number(item.start.split(":")[0]) === hourNumber);
       chunks.push(`
-        <div class="calendar-cell">
+        <div class="calendar-cell" data-slot-date="2026-06-28" data-slot-start="${slotStart}" data-slot-stylist="${stylist}" tabindex="0" role="button" aria-label="Create booking with ${stylist} at ${formatHourLabel(slotStart)}">
           ${matches.map(renderBookingCard).join("")}
-          <button class="slot-button" data-slot-date="2026-06-28" data-slot-start="${slotStart}" data-slot-stylist="${stylist}">
+          <span class="slot-button" aria-hidden="true">
             <span>+</span> Book ${formatHourLabel(slotStart)}
-          </button>
+          </span>
         </div>
       `);
     });
@@ -245,11 +246,22 @@ function renderSchedule() {
 
   qs("#calendar-grid").innerHTML = chunks.join("");
   qsa("[data-appointment]").forEach(button => button.addEventListener("click", () => selectAppointment(button.dataset.appointment)));
-  qsa("[data-slot-date]").forEach(button => button.addEventListener("click", () => selectSlot({
-    date: button.dataset.slotDate,
-    start: button.dataset.slotStart,
-    stylist: button.dataset.slotStylist
-  })));
+  qsa(".calendar-cell[data-slot-date]").forEach(cell => {
+    const chooseCell = () => selectSlot({
+      date: cell.dataset.slotDate,
+      start: cell.dataset.slotStart,
+      stylist: cell.dataset.slotStylist
+    });
+    cell.addEventListener("click", event => {
+      if (event.target.closest("[data-appointment]")) return;
+      chooseCell();
+    });
+    cell.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      chooseCell();
+    });
+  });
 }
 
 function formatHourLabel(time) {
