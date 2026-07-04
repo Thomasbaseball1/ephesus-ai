@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 700" role="img" aria-labelledby="title desc">
+  <title id="title">HVAC and plumbing service call</title>
+  <desc id="desc">A service van, technician, home, condenser, and plumbing tools.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dff1ff"/>
+      <stop offset="1" stop-color="#f8fbff"/>
+    </linearGradient>
+    <linearGradient id="van" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dce7ef"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#22405f"/>
+      <stop offset="1" stop-color="#0e2338"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="700" fill="url(#sky)"/>
+  <circle cx="1320" cy="110" r="62" fill="#ffd36a"/>
+  <path d="M0 490 C210 420 392 444 602 486 C864 538 1080 500 1600 412 L1600 700 L0 700 Z" fill="#bfd7bc"/>
+  <path d="M0 550 C280 510 560 548 760 588 C1050 644 1280 598 1600 538 L1600 700 L0 700 Z" fill="#8fbd84"/>
+  <path d="M1028 194 L1374 84 L1534 194 L1534 505 L1028 505 Z" fill="#eef4f7"/>
+  <path d="M1010 192 L1374 68 L1552 192 Z" fill="#23374d"/>
+  <rect x="1086" y="244" width="118" height="150" rx="6" fill="#9fb2c1"/>
+  <rect x="1245" y="236" width="170" height="220" rx="8" fill="#d2dde5"/>
+  <rect x="1266" y="258" width="128" height="178" fill="#f7fbff"/>
+  <path d="M320 340 L825 340 C877 340 923 379 934 430 L958 542 L132 542 L150 421 C159 374 204 340 258 340 Z" fill="url(#van)"/>
+  <path d="M240 357 L350 357 L350 447 L190 447 L204 394 C211 371 223 357 240 357 Z" fill="#8ec7e9"/>
+  <path d="M380 357 L576 357 L576 447 L380 447 Z" fill="#8ec7e9"/>
+  <path d="M606 357 L800 357 C833 357 860 381 868 413 L876 447 L606 447 Z" fill="#8ec7e9"/>
+  <rect x="166" y="448" width="764" height="58" fill="#f7fbff"/>
+  <rect x="430" y="470" width="198" height="18" rx="9" fill="#f3b53f"/>
+  <rect x="650" y="470" width="112" height="18" rx="9" fill="#1d5f8f"/>
+  <circle cx="282" cy="545" r="70" fill="#182635"/>
+  <circle cx="282" cy="545" r="36" fill="#b8c8d3"/>
+  <circle cx="796" cy="545" r="70" fill="#182635"/>
+  <circle cx="796" cy="545" r="36" fill="#b8c8d3"/>
+  <path d="M234 318 L720 248" stroke="#384f63" stroke-width="14" stroke-linecap="round"/>
+  <path d="M254 296 L740 226" stroke="#d8e3ea" stroke-width="10" stroke-linecap="round"/>
+  <g transform="translate(900 314)">
+    <path d="M68 44 C95 44 116 67 113 94 L97 250 L15 250 L0 94 C-3 67 18 44 45 44 Z" fill="#193957"/>
+    <circle cx="56" cy="26" r="28" fill="#c68a5a"/>
+    <path d="M25 24 C32 -8 82 -6 89 25 C71 17 52 16 25 24 Z" fill="#18324b"/>
+    <path d="M20 103 L-36 206" stroke="#193957" stroke-width="24" stroke-linecap="round"/>
+    <path d="M93 104 L150 202" stroke="#193957" stroke-width="24" stroke-linecap="round"/>
+    <path d="M30 248 L14 354" stroke="#1d2a36" stroke-width="24" stroke-linecap="round"/>
+    <path d="M82 248 L104 354" stroke="#1d2a36" stroke-width="24" stroke-linecap="round"/>
+    <rect x="-46" y="190" width="122" height="66" rx="8" fill="#293946"/>
+    <rect x="-28" y="204" width="22" height="36" rx="5" fill="#f3b53f"/>
+    <rect x="12" y="204" width="22" height="36" rx="5" fill="#7fb7d8"/>
+  </g>
+  <g transform="translate(1208 410)">
+    <rect x="0" y="0" width="202" height="154" rx="10" fill="#b8c4c9"/>
+    <rect x="18" y="18" width="166" height="118" fill="#2d4658"/>
+    <path d="M40 48 H162 M40 76 H162 M40 104 H162" stroke="#9eb5c0" stroke-width="8"/>
+    <circle cx="101" cy="76" r="42" fill="none" stroke="#dce7ef" stroke-width="8"/>
+    <path d="M101 38 L120 76 L101 114 L82 76 Z" fill="#dce7ef"/>
+  </g>
+  <g transform="translate(1340 564)" stroke-linecap="round">
+    <path d="M0 0 L72 -52" stroke="#e85d4f" stroke-width="14"/>
+    <path d="M28 0 L96 -82" stroke="#1d5f8f" stroke-width="14"/>
+    <path d="M58 2 L118 -36" stroke="#f3b53f" stroke-width="14"/>
+    <path d="M-22 20 H142" stroke="#2b3c49" stroke-width="22"/>
+  </g>
+  <rect y="604" width="1600" height="96" fill="url(#shade)" opacity=".34"/>
+</svg>

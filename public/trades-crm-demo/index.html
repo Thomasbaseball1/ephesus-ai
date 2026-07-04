@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DispatchBoard Trades CRM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="icon" href="data:," />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">D</div>
+          <div>
+            <strong>DispatchBoard</strong>
+            <span>HVAC + Plumbing CRM</span>
+          </div>
+        </div>
+        <nav class="nav-list" aria-label="Main navigation">
+          <button class="nav-item active" data-view="schedule"><span>Dispatch</span></button>
+          <button class="nav-item" data-view="dashboard"><span>Operations</span></button>
+          <button class="nav-item" data-view="clients"><span>Customers</span></button>
+          <button class="nav-item" data-view="estimates"><span>Estimates</span><em>4</em></button>
+          <button class="nav-item" data-view="payments"><span>Payments</span></button>
+          <button class="nav-item" data-view="accounting"><span>Accounting</span></button>
+          <button class="nav-item" data-view="phones"><span>Phones</span><em>3</em></button>
+          <button class="nav-item" data-view="team"><span>Team Chat</span></button>
+          <button class="nav-item" data-view="email"><span>Email</span><em>8</em></button>
+          <button class="nav-item" data-view="integrations"><span>Integrations</span></button>
+          <button class="nav-item" data-view="reports"><span>Reports</span></button>
+        </nav>
+        <div class="sync-card">
+          <span class="sync-dot"></span>
+          <strong id="sync-summary">Local demo running</strong>
+          <p>Demo workflow mirrors FSM tools: dispatch, CRM, estimates, payments, accounting, phones, and team chat.</p>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">HVAC + plumbing operations</p>
+            <h1 id="view-title">Dispatch Board</h1>
+          </div>
+          <div class="top-actions">
+            <label class="search">
+              <span>Search</span>
+              <input id="global-search" type="search" placeholder="Customer, job type, technician, email" />
+            </label>
+            <button class="secondary-button" id="import-trigger">Import .ics</button>
+            <button class="secondary-button" data-view-jump="estimates">Build estimate</button>
+            <button class="primary-button" id="new-appointment">New job</button>
+            <input id="ics-import" type="file" accept=".ics,text/calendar" hidden />
+          </div>
+        </header>
+
+        <section class="view active" id="schedule">
+          <div class="schedule-layout">
+            <section class="calendar-panel">
+              <div class="calendar-header">
+                <div>
+                <p class="eyebrow">Today</p>
+                  <h2 id="schedule-date-title">Today's dispatch</h2>
+                </div>
+                <div class="calendar-controls">
+                  <button class="secondary-button" id="previous-day" type="button">Prev</button>
+                  <input id="schedule-date-picker" type="date" />
+                  <button class="secondary-button" id="today-button" type="button">Today</button>
+                  <button class="secondary-button" id="next-day" type="button">Next</button>
+                </div>
+              </div>
+              <div class="calendar-grid" id="calendar-grid"></div>
+            </section>
+
+            <aside class="booking-panel">
+              <div class="panel-card">
+                <p class="eyebrow">Work order</p>
+                <h2 id="form-heading">Create job</h2>
+                <form id="booking-form">
+                  <input id="appointment-id" type="hidden" />
+                  <label>Customer / site<input id="client-input" required placeholder="Bennett Residence" list="client-suggestions" autocomplete="off" /></label>
+                  <datalist id="client-suggestions"></datalist>
+                  <div class="client-picker" id="client-picker" hidden></div>
+                  <div class="client-match" id="client-match" hidden></div>
+                  <label>Email<input id="email-input" type="email" placeholder="maya@example.com" /></label>
+                  <label>Job type<select id="service-input" required></select></label>
+                  <label>Technician<select id="stylist-input"></select></label>
+                  <div class="form-row">
+                    <label>Date<input id="date-input" type="date" required /></label>
+                    <label>Start<input id="start-input" type="time" required /></label>
+                  </div>
+                  <div class="form-row">
+                    <label>Duration<select id="duration-input"><option value="30">30 min</option><option value="45">45 min</option><option value="60">60 min</option><option value="75">75 min</option><option value="90">90 min</option><option value="120">120 min</option><option value="150">150 min</option><option value="180">180 min</option><option value="240">240 min</option></select></label>
+                    <label>Job total<input id="price-input" type="number" min="0" step="0.01" /></label>
+                  </div>
+                  <div class="form-row">
+                    <label>Status<select id="status-input"><option>Booked</option><option>Confirmed</option><option>Dispatched</option><option>Needs reply</option><option>Estimate sent</option><option>Completed</option></select></label>
+                    <label>Payment status<select id="payment-status-input"><option>Unpaid</option><option>Deposit</option><option>Paid</option><option>Comped</option></select></label>
+                  </div>
+                  <label class="check-row"><input id="allow-overlap-input" type="checkbox" /> Allow double booking for this technician</label>
+                  <div class="conflict-warning" id="conflict-warning" hidden></div>
+                  <label>Notes<textarea id="notes-input" placeholder="Address notes, equipment, parts, access instructions"></textarea></label>
+                  <div class="button-row">
+                    <button class="primary-button" type="submit">Save</button>
+                    <button class="secondary-button" type="button" id="clear-form">Clear</button>
+                  </div>
+                  <button class="danger-button" type="button" id="delete-appointment">Delete selected job</button>
+                </form>
+              </div>
+
+              <div class="panel-card">
+                <p class="eyebrow">Calendar actions</p>
+                <h2 id="selected-title">No job selected</h2>
+                <p id="selected-detail">Select a job to send it to Google, Outlook, or export an .ics file.</p>
+                <div class="action-grid">
+                  <button id="edit-selected" type="button">Edit selected</button>
+                  <button id="google-link">Google Calendar</button>
+                  <button id="outlook-link">Outlook Calendar</button>
+                  <button id="download-ics">Download .ics</button>
+                  <button id="copy-summary">Copy summary</button>
+                </div>
+              </div>
+
+              <div class="panel-card">
+                <p class="eyebrow">Payments</p>
+                <h2 id="payment-title">Select a job</h2>
+                <p id="payment-detail">Record card, cash, invoice, deposit, warranty, or comped transactions against the selected job.</p>
+                <form id="payment-form">
+                  <div class="form-row">
+                    <label>Amount<input id="payment-amount-input" type="number" min="0" step="0.01" /></label>
+                    <label>Method<select id="payment-method-input"><option>Card</option><option>Cash</option><option>Invoice</option><option>Deposit</option><option>Warranty</option><option>Comp</option><option>Other</option></select></label>
+                  </div>
+                  <label>Note<input id="payment-note-input" placeholder="Invoice, terminal id, warranty claim, adjustment note" /></label>
+                  <button class="primary-button" type="submit">Record payment</button>
+                </form>
+                <div class="transaction-list" id="selected-transactions"></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="dashboard">
+          <div class="ops-strip">
+            <article>
+              <span>Dispatch health</span>
+              <strong id="capacity-metric">0%</strong>
+              <small>Technician utilization</small>
+            </article>
+            <article>
+              <span>Estimate pipeline</span>
+              <strong id="pipeline-metric">$0</strong>
+              <small>Open proposals</small>
+            </article>
+            <article>
+              <span>Sync queue</span>
+              <strong id="sync-metric">0</strong>
+              <small>Accounting items</small>
+            </article>
+            <article>
+              <span>Customer comms</span>
+              <strong>11</strong>
+              <small>Email, calls, reviews</small>
+            </article>
+          </div>
+          <div class="hero-band">
+            <img src="./assets/field-service-hero.svg" alt="HVAC and plumbing service van outside a home" />
+            <div>
+              <span>Live field-service command center</span>
+              <h2>Dispatch, customer history, job notes, and payments in one place.</h2>
+              <p>Built for call takers, dispatchers, techs, and managers.</p>
+            </div>
+          </div>
+          <div class="metrics-grid">
+            <article><span>Jobs today</span><strong id="booked-metric">0</strong></article>
+            <article><span>Paid today</span><strong id="paid-metric">$0</strong></article>
+            <article><span>Outstanding today</span><strong id="outstanding-metric">$0</strong></article>
+            <article><span>Transactions today</span><strong id="transaction-metric">0</strong></article>
+          </div>
+          <section class="panel-card">
+            <p class="eyebrow">Pipeline</p>
+            <h2>Job board</h2>
+            <div class="kanban-board" id="job-pipeline"></div>
+          </section>
+          <div class="split-layout dashboard-lists">
+            <section class="panel-card">
+              <p class="eyebrow">Today's payments</p>
+              <h2>Transaction log</h2>
+              <div id="dashboard-transactions"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Open balances</p>
+              <h2>Needs collection</h2>
+              <div id="dashboard-balances"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="clients">
+          <div class="split-layout">
+            <section class="panel-card">
+              <p class="eyebrow">CRM</p>
+              <h2>Customers</h2>
+              <div id="client-list"></div>
+            </section>
+            <section class="panel-card" id="client-profile"></section>
+          </div>
+        </section>
+
+        <section class="view" id="email">
+          <div class="split-layout">
+            <section class="panel-card">
+              <p class="eyebrow">Integrated email</p>
+              <h2>Inbox</h2>
+              <div id="inbox-list"></div>
+            </section>
+            <section class="panel-card" id="message-panel"></section>
+          </div>
+        </section>
+
+        <section class="view" id="estimates">
+          <div class="split-layout estimates-layout">
+            <section class="panel-card">
+              <p class="eyebrow">Estimates + proposals</p>
+              <h2>Build a good-better-best quote</h2>
+              <form id="estimate-form">
+                <label>Customer<select id="estimate-customer"></select></label>
+                <label>Proposal type<select id="estimate-type"><option>System replacement</option><option>Water heater replacement</option><option>Drain + camera package</option><option>Repair options</option></select></label>
+                <div class="form-row">
+                  <label>Base option<input id="estimate-base" type="number" min="0" step="1" value="1250" /></label>
+                  <label>Recommended option<input id="estimate-recommended" type="number" min="0" step="1" value="2800" /></label>
+                </div>
+                <div class="form-row">
+                  <label>Premium option<input id="estimate-premium" type="number" min="0" step="1" value="6400" /></label>
+                  <label>Financing<select id="estimate-financing"><option>Offer financing</option><option>No financing</option></select></label>
+                </div>
+                <button class="primary-button" type="submit">Generate proposal</button>
+              </form>
+              <div class="proposal-preview" id="proposal-preview"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Open proposals</p>
+              <h2>Pipeline value</h2>
+              <div id="estimate-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="payments">
+          <div class="split-layout">
+            <section class="panel-card">
+              <p class="eyebrow">Payments</p>
+              <h2>All transactions</h2>
+              <div id="all-transactions"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Processor status</p>
+              <h2>Stripe + Square style ledger</h2>
+              <p>This demo tracks job payments and balances in the browser. Real charging would connect Stripe or Square, save transaction IDs, and listen for webhooks.</p>
+              <div class="profile-grid">
+                <div><strong id="all-paid-metric">$0</strong><span class="subline">Total tracked paid</span></div>
+                <div><strong id="all-open-metric">$0</strong><span class="subline">Total open balance</span></div>
+                <div><strong id="all-transaction-metric">0</strong><span class="subline">Transactions</span></div>
+              </div>
+              <div class="integration-row">
+                <button class="secondary-button" data-demo-action="Create payment link">Create payment link</button>
+                <button class="secondary-button" data-demo-action="Send financing offer">Send financing offer</button>
+                <button class="secondary-button" data-demo-action="Sync paid invoice">Sync paid invoice</button>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="accounting">
+          <div class="split-layout">
+            <section class="panel-card">
+              <p class="eyebrow">QuickBooks + Xero style sync</p>
+              <h2>Accounting queue</h2>
+              <div id="accounting-list"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Ledger mapping</p>
+              <h2>Chart of accounts</h2>
+              <div class="mapping-grid">
+                <div><strong>HVAC repairs</strong><span>Income: 4100 Service Revenue</span></div>
+                <div><strong>Plumbing calls</strong><span>Income: 4200 Plumbing Revenue</span></div>
+                <div><strong>Parts</strong><span>COGS: 5100 Materials</span></div>
+                <div><strong>Tax</strong><span>Liability: Sales Tax Payable</span></div>
+              </div>
+              <button class="primary-button" data-demo-action="Sync queue to accounting">Sync queue</button>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="phones">
+          <div class="split-layout">
+            <section class="panel-card">
+              <p class="eyebrow">RingCentral + OpenPhone style</p>
+              <h2>Call center</h2>
+              <div id="phone-list"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Call actions</p>
+              <h2>Convert call to job</h2>
+              <div class="call-script">
+                <strong>Suggested intake</strong>
+                <span>Confirm site address, issue, urgency, equipment age, access notes, and preferred arrival window.</span>
+              </div>
+              <button class="primary-button" data-demo-action="Turn selected call into job">Create job from call</button>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="team">
+          <div class="split-layout">
+            <section class="panel-card">
+              <p class="eyebrow">Slack + Teams style</p>
+              <h2>Dispatch channel</h2>
+              <div id="team-chat"></div>
+            </section>
+            <section class="panel-card">
+              <p class="eyebrow">Technician status</p>
+              <h2>Field team</h2>
+              <div class="tech-status-grid" id="tech-status-grid"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="view" id="integrations">
+          <div class="integration-grid">
+            <article class="panel-card wide-card">
+              <p class="eyebrow">Industry stack</p>
+              <h2>Connected workflow map</h2>
+              <div class="tool-stack" id="tool-stack"></div>
+            </article>
+            <article class="panel-card">
+              <p class="eyebrow">Google Calendar</p>
+              <h2>One-click event creation</h2>
+              <p>Open selected jobs in Google Calendar with title, time, job type, customer, technician, and notes prefilled. Two-way sync needs a Google Cloud OAuth client and Calendar API access.</p>
+              <button class="primary-button" data-open-selected="google">Open selected in Google</button>
+            </article>
+            <article class="panel-card">
+              <p class="eyebrow">Outlook Calendar</p>
+              <h2>Microsoft calendar handoff</h2>
+              <p>Open selected jobs in Outlook on the web with a prefilled dispatch draft. Two-way sync needs a Microsoft Entra app and Microsoft Graph calendar permissions.</p>
+              <button class="primary-button" data-open-selected="outlook">Open selected in Outlook</button>
+            </article>
+            <article class="panel-card">
+              <p class="eyebrow">ICS</p>
+              <h2>Portable calendar files</h2>
+              <p>Download every job or import external `.ics` events into the dispatch board.</p>
+              <div class="button-row">
+                <button class="secondary-button" id="export-all">Export all .ics</button>
+                <button class="secondary-button" id="import-trigger-2">Import .ics</button>
+              </div>
+              <button class="danger-button" id="reset-demo">Reset demo data</button>
+            </article>
+            <article class="panel-card wide-card">
+              <p class="eyebrow">Live local mode</p>
+              <h2 id="live-status">Checking local server...</h2>
+              <p id="live-detail">The app can run from a local server so browser features behave more like a real app. Calendar drafts and .ics files work now; automatic Google/Outlook syncing is the next backend step.</p>
+              <ol class="setup-list">
+                <li>Google: create a Google Cloud project, enable Calendar API, configure OAuth, and add this local URL as an authorized origin.</li>
+                <li>Outlook: register a Microsoft Entra app, add Graph calendar permissions, and use OAuth authorization code flow.</li>
+                <li>Production: store provider tokens securely and save provider event IDs on each job.</li>
+              </ol>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="reports">
+          <div class="panel-card">
+            <p class="eyebrow">Performance</p>
+            <h2>Revenue by job type</h2>
+            <div id="bar-chart"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./main.js"></script>
+  </body>
+</html>
