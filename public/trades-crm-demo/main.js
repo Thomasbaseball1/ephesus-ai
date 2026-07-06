@@ -2,6 +2,7 @@ const stylists = ["Ramos", "Keisha", "Dawson", "Priya"];
 const storageKey = "dispatchboard-jobs-v1";
 const importedKey = "dispatchboard-import-count-v1";
 const paymentsKey = "dispatchboard-payments-v1";
+const demoBridgeSeenKey = "dispatchboard-demo-bridge-seen-v1";
 const legacySeedDate = "2026-06-28";
 
 const services = [
@@ -217,6 +218,80 @@ function showToast(message) {
   toast.classList.add("show");
   window.clearTimeout(showToast.timer);
   showToast.timer = window.setTimeout(() => toast.classList.remove("show"), 2800);
+}
+
+function parseDemoBookingNotes(notes) {
+  try {
+    const parsed = JSON.parse(notes || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return { notes };
+  }
+}
+
+function demoBookingToAppointment(booking) {
+  const meta = parseDemoBookingNotes(booking.notes);
+  const serviceName = serviceByName(meta.service || meta.jobType)?.name || "Custom work order";
+  const service = serviceByName(serviceName);
+  const technician = stylists.includes(meta.technician) ? meta.technician : stylists[0];
+
+  return {
+    id: `demo-booking-${booking.id}`,
+    client: booking.name || "Phone Demo Customer",
+    email: booking.email || "phone-demo@example.com",
+    service: serviceName,
+    price: Number(meta.price ?? service?.price ?? 0),
+    stylist: technician,
+    date: booking.date || todayIso(),
+    start: String(meta.start || booking.timeSlot || "09:00").slice(0, 5),
+    duration: Number(meta.duration || service?.duration || 90),
+    status: "Booked",
+    paymentStatus: "Unpaid",
+    notes: [
+      "Booked from the Vapi phone demo.",
+      meta.phone ? `Caller phone: ${meta.phone}` : "",
+      meta.notes || meta.issue || ""
+    ].filter(Boolean).join("\n")
+  };
+}
+
+async function syncDemoCrmBookings(showToastOnImport = true) {
+  try {
+    const response = await fetch("/api/demo-crm/bookings", { cache: "no-store" });
+    if (!response.ok) return;
+
+    const data = await response.json();
+    const rows = Array.isArray(data.bookings) ? data.bookings : [];
+    const seen = new Set(JSON.parse(localStorage.getItem(demoBridgeSeenKey) || "[]").map(String));
+    const existingIds = new Set(appointments.map(item => item.id));
+    const imported = [];
+
+    rows.forEach(row => {
+      const appointment = demoBookingToAppointment(row);
+      if (!existingIds.has(appointment.id)) {
+        appointments.push(appointment);
+        imported.push(appointment);
+        existingIds.add(appointment.id);
+      }
+      seen.add(String(row.id));
+    });
+
+    localStorage.setItem(demoBridgeSeenKey, JSON.stringify([...seen]));
+
+    if (imported.length) {
+      const newest = imported[0];
+      selectedId = newest.id;
+      viewDate = newest.date;
+      saveAppointments();
+      renderAll();
+      renderClientSuggestions();
+      if (showToastOnImport) {
+        showToast(`Imported ${imported.length} phone booking${imported.length === 1 ? "" : "s"} into the CRM calendar.`);
+      }
+    }
+  } catch (error) {
+    console.warn("[demo-crm] Booking sync failed", error);
+  }
 }
 
 function selectedAppointment() {
@@ -1138,6 +1213,8 @@ function init() {
   renderAll();
   clearForm();
   checkLiveStatus();
+  syncDemoCrmBookings(false);
+  window.setInterval(() => syncDemoCrmBookings(true), 15000);
 }
 
 init();

@@ -118,6 +118,46 @@ export default async function AdminPage() {
 
       <section>
         <div className="admin-section-heading">
+          <div><p className="admin-kicker">Demo workspace</p><h2>Demo client</h2></div>
+          <span>isolated from production clients</span>
+        </div>
+
+        <article className="admin-client-card">
+          <div className="admin-client-card__header">
+            <div className="admin-client-avatar"><UserRoundCheck /></div>
+            <div className="min-w-0 flex-1">
+              <div className="admin-client-card__name-row">
+                <h3>HVAC + Plumbing CRM Demo</h3>
+                <span className="admin-state-badge" data-state="ready"><i /> Demo bridge ready</span>
+              </div>
+              <p>Use this client to test Vapi phone calls booking into the demo calendar without changing production accounts.</p>
+            </div>
+            <a
+              href="/dashboard/demo/trades-crm"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/30 hover:bg-white/15"
+            >
+              Open demo CRM <ArrowUpRight className="h-4 w-4" />
+            </a>
+          </div>
+
+          <div className="admin-channel-grid">
+            <div data-state="ready"><Phone /><span><strong>Vapi phone</strong><small>Assistant can call the demo booking endpoint</small></span><i /></div>
+            <div data-state="ready"><CalendarDays /><span><strong>CRM calendar</strong><small>Imports phone bookings while the demo is open</small></span><i /></div>
+            <div data-state="ready"><PlugZap /><span><strong>Bridge endpoint</strong><small>/api/demo-crm/bookings</small></span><i /></div>
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/62">
+            <p className="mb-2 font-semibold text-white">Vapi tool setup</p>
+            <p>
+              Point the assistant function/webhook to <code className="rounded bg-white/10 px-1.5 py-0.5 text-white">POST https://ephesusai.com/api/demo-crm/bookings</code>.
+              Send name, email, phone, service, technician, date, start, duration, and notes. The demo calendar imports those rows and blocks same-technician overlaps.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <section>
+        <div className="admin-section-heading">
           <div><p className="admin-kicker">Account registry</p><h2>Client directory</h2></div>
           <span>{allUsers.length} production account{allUsers.length === 1 ? '' : 's'}</span>
         </div>
