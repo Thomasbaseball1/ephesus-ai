@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { DashboardPageHeader } from '@/components/DashboardPageHeader';
+import { VapiDemo } from '@/components/VapiDemo';
 import { ArrowUpRight, Wrench } from 'lucide-react';
 
 export default function DashboardTradesCrmDemoPage() {
@@ -25,6 +26,10 @@ export default function DashboardTradesCrmDemoPage() {
           Open full screen <ArrowUpRight className="h-4 w-4" />
         </Link>
       </div>
+
+      <section className="rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-4 shadow-2xl shadow-slate-950/30 sm:p-6">
+        <VapiDemo />
+      </section>
 
       <section className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 shadow-2xl shadow-slate-950/30">
         <iframe
