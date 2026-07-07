@@ -106,6 +106,10 @@ let appointments = loadAppointments();
 let payments = loadPayments();
 let viewDate = todayIso();
 let selectedId = appointments.find(item => item.date === viewDate)?.id || appointments[0]?.id || null;
+let calendarIntegrations = {
+  google: { connected: false, integrations: [], selectedIntegrationId: null, selectedCalendarId: null },
+  outlook: { connected: false, calendarReady: false, email: "" }
+};
 
 const qs = (selector) => document.querySelector(selector);
 const qsa = (selector) => [...document.querySelectorAll(selector)];
@@ -382,6 +386,137 @@ function outlookCalendarUrl(appointment) {
     location: "Customer site"
   });
   return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
+}
+
+function appointmentSyncPayload(appointment) {
+  return {
+    client: appointment.client,
+    email: appointment.email,
+    service: appointment.service,
+    stylist: appointment.stylist,
+    date: appointment.date,
+    start: appointment.start,
+    duration: Number(appointment.duration || 60),
+    status: appointment.status,
+    notes: appointment.notes
+  };
+}
+
+function renderCalendarIntegrationStatus() {
+  const googleStatus = qs("#google-sync-status");
+  const googleSelect = qs("#google-calendar-select");
+  const googleButton = qs("#sync-google-calendar");
+  const outlookStatus = qs("#outlook-sync-status");
+  const outlookButton = qs("#sync-outlook-calendar");
+
+  if (googleStatus && googleSelect && googleButton) {
+    const calendars = calendarIntegrations.google.integrations.flatMap(integration =>
+      (integration.calendars || []).map(calendar => ({ integration, calendar }))
+    );
+
+    googleSelect.innerHTML = calendars.length
+      ? calendars.map(({ integration, calendar }) => `
+        <option value="${integration.id}::${calendar.id}">
+          ${calendar.primary ? "Primary - " : ""}${calendar.summary || calendar.id} (${integration.email})
+        </option>
+      `).join("")
+      : `<option value="">No writable Google calendars connected</option>`;
+
+    if (calendars.length) {
+      const first = calendars[0];
+      calendarIntegrations.google.selectedIntegrationId = first.integration.id;
+      calendarIntegrations.google.selectedCalendarId = first.calendar.id;
+      googleStatus.textContent = `Connected as ${first.integration.email}. Select a job, then sync it directly to Google Calendar.`;
+      googleButton.disabled = false;
+      googleSelect.disabled = false;
+    } else if (calendarIntegrations.google.connected) {
+      googleStatus.textContent = "Google is connected, but no writable calendars were returned. Reconnect if this looks wrong.";
+      googleButton.disabled = true;
+      googleSelect.disabled = true;
+    } else {
+      googleStatus.textContent = "Connect Google Calendar to create real events from CRM jobs. Draft links still work without connecting.";
+      googleButton.disabled = true;
+      googleSelect.disabled = true;
+    }
+  }
+
+  if (outlookStatus && outlookButton) {
+    if (calendarIntegrations.outlook.connected && calendarIntegrations.outlook.calendarReady) {
+      outlookStatus.textContent = `Connected as ${calendarIntegrations.outlook.email}. Selected jobs can sync directly to Outlook Calendar.`;
+      outlookButton.disabled = false;
+    } else if (calendarIntegrations.outlook.connected) {
+      outlookStatus.textContent = "Outlook is connected for email. Reconnect once to grant calendar booking access.";
+      outlookButton.disabled = true;
+    } else {
+      outlookStatus.textContent = "Connect Outlook to create Microsoft 365 calendar events from CRM jobs. Draft links still work without connecting.";
+      outlookButton.disabled = true;
+    }
+  }
+}
+
+async function loadCalendarIntegrations() {
+  try {
+    const [googleResponse, outlookResponse] = await Promise.all([
+      fetch("/api/trades-crm/google-calendars", { cache: "no-store" }),
+      fetch("/api/trades-crm/outlook-status", { cache: "no-store" })
+    ]);
+
+    if (googleResponse.ok) {
+      const google = await googleResponse.json();
+      calendarIntegrations.google.connected = Boolean(google.connected);
+      calendarIntegrations.google.integrations = Array.isArray(google.integrations) ? google.integrations : [];
+    }
+
+    if (outlookResponse.ok) {
+      const outlook = await outlookResponse.json();
+      calendarIntegrations.outlook.connected = Boolean(outlook.connected);
+      calendarIntegrations.outlook.calendarReady = Boolean(outlook.integration?.calendarReady);
+      calendarIntegrations.outlook.email = outlook.integration?.email || "";
+    }
+  } catch (error) {
+    console.warn("[trades-crm] Calendar integration status failed", error);
+  } finally {
+    renderCalendarIntegrationStatus();
+  }
+}
+
+async function syncSelectedToProvider(provider) {
+  const appointment = selectedAppointment();
+  if (!appointment) return showToast("Select a job first.");
+
+  try {
+    if (provider === "google") {
+      const selectValue = qs("#google-calendar-select")?.value || "";
+      const [integrationId, calendarId] = selectValue.split("::");
+      if (!integrationId || !calendarId) return showToast("Connect a writable Google calendar first.");
+
+      const response = await fetch("/api/trades-crm/google-events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          integrationId: Number(integrationId),
+          calendarId,
+          appointment: appointmentSyncPayload(appointment)
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Google Calendar sync failed");
+      if (data.htmlLink) window.open(data.htmlLink, "_blank", "noopener,noreferrer");
+      return showToast("Synced selected job to Google Calendar.");
+    }
+
+    const response = await fetch("/api/trades-crm/outlook-events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ appointment: appointmentSyncPayload(appointment) })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Outlook Calendar sync failed");
+    if (data.htmlLink) window.open(data.htmlLink, "_blank", "noopener,noreferrer");
+    showToast("Synced selected job to Outlook Calendar.");
+  } catch (error) {
+    showToast(error.message || "Calendar sync failed. Try the draft link or reconnect.");
+  }
 }
 
 function renderSchedule() {
@@ -1169,6 +1304,13 @@ function init() {
   });
   qs("#google-link").addEventListener("click", () => openSelected("google"));
   qs("#outlook-link").addEventListener("click", () => openSelected("outlook"));
+  qs("#sync-google-calendar").addEventListener("click", () => syncSelectedToProvider("google"));
+  qs("#sync-outlook-calendar").addEventListener("click", () => syncSelectedToProvider("outlook"));
+  qs("#google-calendar-select").addEventListener("change", event => {
+    const [integrationId, calendarId] = event.target.value.split("::");
+    calendarIntegrations.google.selectedIntegrationId = integrationId || null;
+    calendarIntegrations.google.selectedCalendarId = calendarId || null;
+  });
   qs("#edit-selected").addEventListener("click", editSelectedAppointment);
   qs("#download-ics").addEventListener("click", downloadSelectedIcs);
   qs("#copy-summary").addEventListener("click", copySelectedSummary);
@@ -1213,6 +1355,8 @@ function init() {
   renderAll();
   clearForm();
   checkLiveStatus();
+  renderCalendarIntegrationStatus();
+  loadCalendarIntegrations();
   syncDemoCrmBookings(false);
   window.setInterval(() => syncDemoCrmBookings(true), 15000);
 }

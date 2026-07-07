@@ -338,15 +338,24 @@
             </article>
             <article class="panel-card">
               <p class="eyebrow">Google Calendar</p>
-              <h2>One-click event creation</h2>
-              <p>Open selected jobs in Google Calendar with title, time, job type, customer, technician, and notes prefilled. Two-way sync needs a Google Cloud OAuth client and Calendar API access.</p>
-              <button class="primary-button" data-open-selected="google">Open selected in Google</button>
+              <h2>Gmail / Google calendar</h2>
+              <p id="google-sync-status">Checking Google Calendar connection...</p>
+              <div class="calendar-sync-actions">
+                <select id="google-calendar-select" aria-label="Google calendar"></select>
+                <button class="primary-button" id="sync-google-calendar">Sync selected to Google</button>
+                <button class="secondary-button" data-open-selected="google">Open Google draft</button>
+              </div>
+              <a class="connect-link" href="/api/integrations/google-calendar/connect?returnTo=%2Fdashboard%2Fdemo%2Ftrades-crm" target="_top">Connect Google Calendar</a>
             </article>
             <article class="panel-card">
               <p class="eyebrow">Outlook Calendar</p>
-              <h2>Microsoft calendar handoff</h2>
-              <p>Open selected jobs in Outlook on the web with a prefilled dispatch draft. Two-way sync needs a Microsoft Entra app and Microsoft Graph calendar permissions.</p>
-              <button class="primary-button" data-open-selected="outlook">Open selected in Outlook</button>
+              <h2>Microsoft 365 calendar</h2>
+              <p id="outlook-sync-status">Checking Outlook connection...</p>
+              <div class="calendar-sync-actions">
+                <button class="primary-button" id="sync-outlook-calendar">Sync selected to Outlook</button>
+                <button class="secondary-button" data-open-selected="outlook">Open Outlook draft</button>
+              </div>
+              <a class="connect-link" href="/api/integrations/outlook/connect" target="_top">Connect Outlook</a>
             </article>
             <article class="panel-card">
               <p class="eyebrow">ICS</p>
@@ -361,11 +370,11 @@
             <article class="panel-card wide-card">
               <p class="eyebrow">Live local mode</p>
               <h2 id="live-status">Checking local server...</h2>
-              <p id="live-detail">The app can run from a local server so browser features behave more like a real app. Calendar drafts and .ics files work now; automatic Google/Outlook syncing is the next backend step.</p>
+              <p id="live-detail">The app can run from a local server so browser features behave more like a real app. Calendar drafts, .ics files, demo phone bookings, and connected Google/Outlook calendar pushes are supported.</p>
               <ol class="setup-list">
-                <li>Google: create a Google Cloud project, enable Calendar API, configure OAuth, and add this local URL as an authorized origin.</li>
-                <li>Outlook: register a Microsoft Entra app, add Graph calendar permissions, and use OAuth authorization code flow.</li>
-                <li>Production: store provider tokens securely and save provider event IDs on each job.</li>
+                <li>Google: connect from the dashboard integrations page, then push selected CRM jobs into a writable Google calendar.</li>
+                <li>Outlook: reconnect Microsoft 365 with calendar permissions, then push selected CRM jobs into Outlook calendar.</li>
+                <li>Public demo mode: unauthenticated visitors can still use calendar drafts and .ics exports.</li>
               </ol>
             </article>
           </div>

@@ -19,7 +19,7 @@ export default function DashboardTradesCrmDemoPage() {
           Demo changes are saved in this browser only, so you can create jobs, test customer autofill, generate estimates, record payments, and reset freely.
         </p>
         <Link
-          href="/trades-crm-demo/index.html?v=20260704-no-marketing"
+          href="/trades-crm-demo/index.html?v=20260706-calendar-sync"
           target="_blank"
           className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
         >
@@ -34,7 +34,7 @@ export default function DashboardTradesCrmDemoPage() {
       <section className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 shadow-2xl shadow-slate-950/30">
         <iframe
           title="HVAC and plumbing CRM interactive demo"
-          src="/trades-crm-demo/index.html?v=20260704-no-marketing"
+          src="/trades-crm-demo/index.html?v=20260706-calendar-sync"
           className="h-[820px] w-full border-0"
         />
       </section>

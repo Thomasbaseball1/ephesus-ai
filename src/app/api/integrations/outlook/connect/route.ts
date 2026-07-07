@@ -10,6 +10,7 @@ const SCOPES = [
   'https://graph.microsoft.com/Mail.Read',
   'https://graph.microsoft.com/Mail.Send',
   'https://graph.microsoft.com/Mail.ReadWrite',
+  'https://graph.microsoft.com/Calendars.ReadWrite',
 ].join(' ');
 
 export async function GET(req: NextRequest) {

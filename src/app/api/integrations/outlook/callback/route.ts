@@ -129,6 +129,7 @@ export async function GET(req: NextRequest) {
         expiresAt,
         displayName,
         connectedAt: new Date().toISOString(),
+        scopes: 'Mail.Read,Mail.Send,Mail.ReadWrite,Calendars.ReadWrite',
       })
       .where(eq(outlookIntegrations.id, existing[0].id));
   } else {
@@ -140,7 +141,7 @@ export async function GET(req: NextRequest) {
       accessToken: access_token,
       refreshToken: refresh_token,
       expiresAt,
-      scopes: 'Mail.Read,Mail.Send,Mail.ReadWrite',
+      scopes: 'Mail.Read,Mail.Send,Mail.ReadWrite,Calendars.ReadWrite',
       connectedAt: new Date().toISOString(),
     });
   }

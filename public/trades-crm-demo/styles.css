@@ -771,6 +771,36 @@ textarea {
   line-height: 1.6;
 }
 
+.calendar-sync-actions {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.calendar-sync-actions select {
+  min-height: 42px;
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--text);
+  padding: 0 12px;
+  font: inherit;
+  font-weight: 750;
+}
+
+.connect-link {
+  display: inline-flex;
+  margin-top: 12px;
+  color: var(--blue);
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.connect-link:hover {
+  text-decoration: underline;
+}
+
 .client-row, .email-row {
   display: grid;
   gap: 4px;

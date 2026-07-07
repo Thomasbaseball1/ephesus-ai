@@ -36,7 +36,7 @@ export async function ensureFreshToken(integrationId: number): Promise<boolean> 
           client_secret: clientSecret,
           refresh_token: row.refreshToken,
           grant_type: 'refresh_token',
-          scope: 'openid email profile Mail.Read Mail.Send Mail.ReadWrite offline_access',
+          scope: 'openid email profile Mail.Read Mail.Send Mail.ReadWrite Calendars.ReadWrite offline_access',
         }),
       }
     );
