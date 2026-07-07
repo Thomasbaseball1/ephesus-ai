@@ -37,7 +37,7 @@ const seedPayments = [
   { id: "pay-2", appointmentId: "apt-2", client: "Chen Dental Group", amount: 75, method: "Deposit", note: "Commercial dispatch deposit", date: "2026-06-28", createdAt: "2026-06-28T10:05:00" }
 ];
 
-const emails = [
+const demoEmails = [
   { from: "Nina Patel", subject: "Tenant available after lunch", time: "8:42 AM", linked: "Matched to customer", body: "The tenant can meet the tech after 12 today. The kitchen sink is still backing up.", action: "Open Patel Duplex job, confirm the arrival window, then send an Outlook or Gmail reply." },
   { from: "Maya Bennett", subject: "Thermostat went blank", time: "Yesterday", linked: "Matched to service address", body: "The upstairs thermostat screen is blank and the AC has been off since last night.", action: "Add thermostat notes to the job and keep AC diagnostic on the board." },
   { from: "Chen Dental Group", subject: "Hot water issue before afternoon patients", time: "Yesterday", linked: "Commercial account", body: "Can your technician arrive before lunch? We need hot water back before the afternoon schedule.", action: "Flag as commercial priority and confirm arrival window." }
@@ -104,6 +104,8 @@ const viewTitles = {
 
 let appointments = loadAppointments();
 let payments = loadPayments();
+let emails = demoEmails;
+let emailSource = "demo";
 let viewDate = todayIso();
 let selectedId = appointments.find(item => item.date === viewDate)?.id || appointments[0]?.id || null;
 let calendarIntegrations = {
@@ -1002,13 +1004,22 @@ function renderClientProfile(clientName, items) {
 }
 
 function renderEmail() {
-  qs("#inbox-list").innerHTML = emails.map((email, index) => `
+  const sourceLabel = emailSource === "live"
+    ? "Live Gmail / Outlook inbox"
+    : "Demo inbox - connect Gmail or Outlook to pull real messages";
+
+  qs("#inbox-list").innerHTML = `
+    <div class="email-source-banner">
+      <strong>${sourceLabel}</strong>
+      <span>${emails.length} message${emails.length === 1 ? "" : "s"}</span>
+    </div>
+    ${emails.map((email, index) => `
     <button class="email-row ${index === 0 ? "active" : ""}" data-email="${index}">
-      <strong>${email.from}</strong>
+      <strong>${email.from}<em>${email.provider ? email.provider.toUpperCase() : "DEMO"}</em></strong>
       <span class="subline">${email.subject}</span>
-      <span class="subline">${email.linked}</span>
+      <span class="subline">${email.linked}${email.account ? ` - ${email.account}` : ""}</span>
     </button>
-  `).join("");
+  `).join("")}`;
   qsa("[data-email]").forEach(button => button.addEventListener("click", () => selectEmail(Number(button.dataset.email))));
   selectEmail(0);
 }
@@ -1016,10 +1027,18 @@ function renderEmail() {
 function selectEmail(index = 0) {
   qsa(".email-row").forEach((row, i) => row.classList.toggle("active", i === index));
   const email = emails[index];
+  if (!email) {
+    qs("#message-panel").innerHTML = `
+      <p class="eyebrow">Inbox</p>
+      <h2>No messages found</h2>
+      <p class="subline">Connect Gmail or Outlook, then refresh this CRM to load recent customer messages.</p>
+    `;
+    return;
+  }
   qs("#message-panel").innerHTML = `
     <p class="eyebrow">${email.linked}</p>
     <h2>${email.subject}</h2>
-    <p class="subline">From ${email.from} - ${email.time}</p>
+    <p class="subline">From ${email.from} - ${email.time}${email.account ? ` - ${email.account}` : ""}</p>
     <div class="message-copy">${email.body}</div>
     <p><strong>Suggested action:</strong> ${email.action}</p>
     <div class="button-row">
@@ -1027,6 +1046,23 @@ function selectEmail(index = 0) {
       <button class="primary-button" onclick="document.querySelector('[data-view=schedule]').click()">Open schedule</button>
     </div>
   `;
+}
+
+async function loadLiveEmails() {
+  try {
+    const response = await fetch("/api/trades-crm/emails", { cache: "no-store" });
+    if (!response.ok) return;
+
+    const data = await response.json();
+    if (Array.isArray(data.emails) && data.emails.length) {
+      emails = data.emails;
+      emailSource = "live";
+      renderEmail();
+      showToast(`Loaded ${data.emails.length} live Gmail/Outlook message${data.emails.length === 1 ? "" : "s"}.`);
+    }
+  } catch (error) {
+    console.warn("[trades-crm] Live inbox load failed", error);
+  }
 }
 
 function renderJobPipeline() {
@@ -1355,6 +1391,7 @@ function init() {
   renderAll();
   clearForm();
   checkLiveStatus();
+  loadLiveEmails();
   renderCalendarIntegrationStatus();
   loadCalendarIntegrations();
   syncDemoCrmBookings(false);

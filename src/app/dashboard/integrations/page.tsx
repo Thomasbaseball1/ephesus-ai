@@ -184,7 +184,7 @@ export default async function IntegrationsPage({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="font-semibold text-base">Google Calendar</h2>
+                <h2 className="font-semibold text-base">Google Calendar + Gmail</h2>
                 {googleConnected ? (
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                     {googleCalendars.length} connected
@@ -201,7 +201,7 @@ export default async function IntegrationsPage({
             </div>
 
             <p className="text-sm text-muted-foreground mt-1">
-              Connect Gmail or Google Workspace calendars so the Salon Biz CRM demo can create real booking events.
+              Connect Google Workspace so the CRM can create booking events and pull recent Gmail messages into the Email tab.
             </p>
 
             {googleCalendars.length > 0 && (
@@ -219,7 +219,7 @@ export default async function IntegrationsPage({
             )}
 
             <div className="mt-3 flex flex-wrap gap-2">
-              {['Create events', 'Choose calendar', 'Multiple Google accounts'].map(p => (
+              {['Create events', 'Read Gmail inbox', 'Multiple Google accounts'].map(p => (
                 <span key={p} className="text-xs px-2 py-0.5 rounded-md bg-secondary text-muted-foreground">
                   {p}
                 </span>

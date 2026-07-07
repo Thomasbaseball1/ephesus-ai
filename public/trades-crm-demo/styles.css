@@ -813,6 +813,43 @@ textarea {
   text-align: left;
 }
 
+.email-source-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.email-source-banner span {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.email-row strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.email-row strong em {
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  padding: 3px 8px;
+  font-size: 11px;
+  font-style: normal;
+  letter-spacing: 0;
+}
+
 .transaction-list,
 #dashboard-transactions,
 #dashboard-balances,
