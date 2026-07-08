@@ -106,6 +106,7 @@ let appointments = loadAppointments();
 let payments = loadPayments();
 let emails = demoEmails;
 let emailSource = "demo";
+let emailIntegrationStatus = { connected: false, accounts: [], counts: { gmail: 0, outlook: 0 } };
 let viewDate = todayIso();
 let selectedId = appointments.find(item => item.date === viewDate)?.id || appointments[0]?.id || null;
 let calendarIntegrations = {
@@ -1004,14 +1005,28 @@ function renderClientProfile(clientName, items) {
 }
 
 function renderEmail() {
+  const needsGoogleReconnect = emailIntegrationStatus.accounts?.some(account => account.provider === "gmail" && account.needsReconnect);
+  const connectedAccounts = emailIntegrationStatus.accounts?.length || 0;
   const sourceLabel = emailSource === "live"
-    ? "Live Gmail / Outlook inbox"
+    ? `Live Gmail / Outlook inbox${connectedAccounts ? ` - ${connectedAccounts} account${connectedAccounts === 1 ? "" : "s"}` : ""}`
     : "Demo inbox - connect Gmail or Outlook to pull real messages";
+  const detailLabel = emailSource === "live"
+    ? needsGoogleReconnect
+      ? "Google connected before Gmail access was added. Reconnect Google to read Gmail."
+      : `${emailIntegrationStatus.counts?.gmail || 0} Gmail / ${emailIntegrationStatus.counts?.outlook || 0} Outlook`
+    : "Demo messages shown until a connected inbox is available";
 
   qs("#inbox-list").innerHTML = `
     <div class="email-source-banner">
-      <strong>${sourceLabel}</strong>
-      <span>${emails.length} message${emails.length === 1 ? "" : "s"}</span>
+      <div>
+        <strong>${sourceLabel}</strong>
+        <span>${detailLabel}</span>
+      </div>
+      <div class="email-source-actions">
+        <button class="secondary-button" id="refresh-live-email" type="button">Refresh</button>
+        <a class="connect-link" href="/api/integrations/google-calendar/connect?returnTo=%2Fdashboard%2Fdemo%2Ftrades-crm" target="_top">Google</a>
+        <a class="connect-link" href="/api/integrations/outlook/connect" target="_top">Outlook</a>
+      </div>
     </div>
     ${emails.map((email, index) => `
     <button class="email-row ${index === 0 ? "active" : ""}" data-email="${index}">
@@ -1020,6 +1035,7 @@ function renderEmail() {
       <span class="subline">${email.linked}${email.account ? ` - ${email.account}` : ""}</span>
     </button>
   `).join("")}`;
+  qs("#refresh-live-email")?.addEventListener("click", () => loadLiveEmails(true));
   qsa("[data-email]").forEach(button => button.addEventListener("click", () => selectEmail(Number(button.dataset.email))));
   selectEmail(0);
 }
@@ -1031,7 +1047,11 @@ function selectEmail(index = 0) {
     qs("#message-panel").innerHTML = `
       <p class="eyebrow">Inbox</p>
       <h2>No messages found</h2>
-      <p class="subline">Connect Gmail or Outlook, then refresh this CRM to load recent customer messages.</p>
+      <p class="subline">${emailSource === "live" ? "Your inbox connection is live, but there are no recent messages to show." : "Connect Gmail or Outlook, then refresh this CRM to load recent customer messages."}</p>
+      <div class="button-row">
+        <button class="secondary-button" onclick="document.querySelector('#refresh-live-email')?.click()">Refresh inbox</button>
+        <button class="primary-button" onclick="document.querySelector('[data-view=schedule]').click()">Open schedule</button>
+      </div>
     `;
     return;
   }
@@ -1048,20 +1068,34 @@ function selectEmail(index = 0) {
   `;
 }
 
-async function loadLiveEmails() {
+async function loadLiveEmails(showResultToast = false) {
   try {
     const response = await fetch("/api/trades-crm/emails", { cache: "no-store" });
-    if (!response.ok) return;
+    if (!response.ok) {
+      if (showResultToast) showToast("Connect Gmail or Outlook first, then refresh the inbox.");
+      return;
+    }
 
     const data = await response.json();
-    if (Array.isArray(data.emails) && data.emails.length) {
-      emails = data.emails;
+    emailIntegrationStatus = {
+      connected: Boolean(data.connected),
+      accounts: Array.isArray(data.accounts) ? data.accounts : [],
+      counts: data.counts || { gmail: 0, outlook: 0 }
+    };
+
+    if (data.connected) {
+      emails = Array.isArray(data.emails) ? data.emails : [];
       emailSource = "live";
       renderEmail();
-      showToast(`Loaded ${data.emails.length} live Gmail/Outlook message${data.emails.length === 1 ? "" : "s"}.`);
+      if (showResultToast) {
+        showToast(`Live inbox refreshed: ${emails.length} message${emails.length === 1 ? "" : "s"} loaded.`);
+      }
+    } else if (showResultToast) {
+      showToast("No Gmail or Outlook inbox is connected yet.");
     }
   } catch (error) {
     console.warn("[trades-crm] Live inbox load failed", error);
+    if (showResultToast) showToast("Live inbox refresh failed.");
   }
 }
 

@@ -817,6 +817,7 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 10px;
   padding: 10px 12px;
@@ -828,9 +829,34 @@ textarea {
   font-weight: 850;
 }
 
+.email-source-banner div:first-child {
+  display: grid;
+  gap: 3px;
+}
+
 .email-source-banner span {
   color: var(--muted);
   font-weight: 750;
+}
+
+.email-source-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.email-source-actions .secondary-button {
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.email-source-actions .connect-link {
+  margin-top: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  padding: 7px 10px;
+  line-height: 1;
 }
 
 .email-row strong {

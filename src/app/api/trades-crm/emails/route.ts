@@ -198,7 +198,25 @@ export async function GET() {
   if (!session) return NextResponse.json({ connected: false, emails: [] }, { status: 401 });
 
   try {
-    const [gmail, outlook] = await Promise.all([
+    const [googleAccounts, outlookAccounts, gmail, outlook] = await Promise.all([
+      db
+        .select({
+          id: googleCalendarIntegrations.id,
+          email: googleCalendarIntegrations.email,
+          displayName: googleCalendarIntegrations.displayName,
+          scopes: googleCalendarIntegrations.scopes,
+        })
+        .from(googleCalendarIntegrations)
+        .where(eq(googleCalendarIntegrations.userId, session.user.id)),
+      db
+        .select({
+          id: outlookIntegrations.id,
+          email: outlookIntegrations.email,
+          displayName: outlookIntegrations.displayName,
+          scopes: outlookIntegrations.scopes,
+        })
+        .from(outlookIntegrations)
+        .where(eq(outlookIntegrations.userId, session.user.id)),
       readGmailMessages(session.user.id),
       readOutlookMessages(session.user.id),
     ]);
@@ -207,9 +225,27 @@ export async function GET() {
       .sort((a, b) => new Date(b.receivedAt || 0).getTime() - new Date(a.receivedAt || 0).getTime())
       .slice(0, 20);
 
+    const accounts = [
+      ...googleAccounts.map(account => ({
+        provider: 'gmail',
+        email: account.email,
+        displayName: account.displayName,
+        ready: (account.scopes || '').includes('gmail.readonly'),
+        needsReconnect: !(account.scopes || '').includes('gmail.readonly'),
+      })),
+      ...outlookAccounts.map(account => ({
+        provider: 'outlook',
+        email: account.email,
+        displayName: account.displayName,
+        ready: true,
+        needsReconnect: false,
+      })),
+    ];
+
     return NextResponse.json({
-      connected: gmail.length > 0 || outlook.length > 0,
+      connected: accounts.length > 0,
       counts: { gmail: gmail.length, outlook: outlook.length },
+      accounts,
       emails,
     });
   } catch (error) {
