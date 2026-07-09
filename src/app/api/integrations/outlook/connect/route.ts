@@ -26,9 +26,11 @@ export async function GET(req: NextRequest) {
   // whichever domain the user is on (Orchids, Vercel, production, etc.)
   const redirectUri = `${req.nextUrl.origin}/api/integrations/outlook/callback`;
 
-  // Encode both userId and the redirectUri so the callback knows where it came from
+  const returnTo = req.nextUrl.searchParams.get('returnTo') || '/dashboard/integrations';
+
+  // Encode userId, redirectUri, and return target so the callback knows where it came from
   const state = Buffer.from(
-    JSON.stringify({ userId: session.user.id, redirectUri })
+    JSON.stringify({ userId: session.user.id, redirectUri, returnTo })
   ).toString('base64url');
 
   const params = new URLSearchParams({

@@ -10,6 +10,12 @@ interface GoogleProfile {
   name?: string;
 }
 
+function safeDashboardReturnTo(value?: string) {
+  if (!value || !value.startsWith('/dashboard')) return '/dashboard/integrations';
+  if (value.startsWith('//')) return '/dashboard/integrations';
+  return value;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const code = searchParams.get('code');
@@ -39,7 +45,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(fallbackUrl);
   }
 
-  const redirectTarget = new URL(decodedState.returnTo || '/dashboard/integrations', req.url);
+  const redirectTarget = new URL(safeDashboardReturnTo(decodedState.returnTo), req.url);
 
   try {
     const oauth2Client = getGoogleCalendarOAuthClient(req.nextUrl.origin);

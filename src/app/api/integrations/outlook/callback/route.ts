@@ -3,6 +3,12 @@ import { db } from '@/db';
 import { outlookIntegrations } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 
+function safeDashboardReturnTo(value?: string) {
+  if (!value || !value.startsWith('/dashboard')) return '/dashboard/integrations';
+  if (value.startsWith('//')) return '/dashboard/integrations';
+  return value;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
   const code = searchParams.get('code');
@@ -27,10 +33,12 @@ export async function GET(req: NextRequest) {
   // Decode state
   let userId: string;
   let redirectUri: string;
+  let returnTo: string;
   try {
     const decoded = JSON.parse(Buffer.from(state, 'base64url').toString());
     userId = decoded.userId;
     redirectUri = decoded.redirectUri;
+    returnTo = typeof decoded.returnTo === 'string' ? decoded.returnTo : '/dashboard/integrations';
     if (!userId || !redirectUri) throw new Error('Missing fields in state');
   } catch (e) {
     console.error('[Outlook callback] Invalid state:', e);
@@ -38,14 +46,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(dashboardUrl);
   }
 
+  const redirectTarget = new URL(safeDashboardReturnTo(returnTo), req.url);
+
   const clientId = process.env.MICROSOFT_CLIENT_ID!;
   const clientSecret = process.env.MICROSOFT_CLIENT_SECRET!;
   const tenant = process.env.MICROSOFT_TENANT_ID || 'common';
 
   if (!clientId || !clientSecret) {
     console.error('[Outlook callback] Missing MICROSOFT_CLIENT_ID or MICROSOFT_CLIENT_SECRET env vars');
-    dashboardUrl.searchParams.set('error', 'server_config');
-    return NextResponse.redirect(dashboardUrl);
+    redirectTarget.searchParams.set('error', 'server_config');
+    return NextResponse.redirect(redirectTarget);
   }
 
   // Exchange code for tokens
@@ -68,8 +78,8 @@ export async function GET(req: NextRequest) {
   if (!tokenRes.ok) {
     const err = await tokenRes.text();
     console.error('[Outlook callback] Token exchange failed:', err);
-    dashboardUrl.searchParams.set('error', 'token_exchange_failed');
-    return NextResponse.redirect(dashboardUrl);
+    redirectTarget.searchParams.set('error', 'token_exchange_failed');
+    return NextResponse.redirect(redirectTarget);
   }
 
   const tokens = await tokenRes.json();
@@ -77,8 +87,8 @@ export async function GET(req: NextRequest) {
 
   if (!access_token || !refresh_token) {
     console.error('[Outlook callback] Missing tokens in response:', Object.keys(tokens));
-    dashboardUrl.searchParams.set('error', 'token_exchange_failed');
-    return NextResponse.redirect(dashboardUrl);
+    redirectTarget.searchParams.set('error', 'token_exchange_failed');
+    return NextResponse.redirect(redirectTarget);
   }
 
   const expiresAt = Math.floor(Date.now() / 1000) + expires_in;
@@ -87,8 +97,8 @@ export async function GET(req: NextRequest) {
   const idToken: string = tokens.id_token;
   if (!idToken) {
     console.error('[Outlook callback] No id_token in response');
-    dashboardUrl.searchParams.set('error', 'token_exchange_failed');
-    return NextResponse.redirect(dashboardUrl);
+    redirectTarget.searchParams.set('error', 'token_exchange_failed');
+    return NextResponse.redirect(redirectTarget);
   }
 
   let microsoftUserId: string;
@@ -104,8 +114,8 @@ export async function GET(req: NextRequest) {
     console.log('[Outlook callback] ID token decoded:', { microsoftUserId, email, displayName });
   } catch (e) {
     console.error('[Outlook callback] Failed to decode id_token:', e);
-    dashboardUrl.searchParams.set('error', 'profile_fetch_failed');
-    return NextResponse.redirect(dashboardUrl);
+    redirectTarget.searchParams.set('error', 'profile_fetch_failed');
+    return NextResponse.redirect(redirectTarget);
   }
 
   console.log('[Outlook callback] Connected:', email, displayName);
@@ -146,6 +156,6 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  dashboardUrl.searchParams.set('connected', 'outlook');
-  return NextResponse.redirect(dashboardUrl);
+  redirectTarget.searchParams.set('connected', 'outlook');
+  return NextResponse.redirect(redirectTarget);
 }

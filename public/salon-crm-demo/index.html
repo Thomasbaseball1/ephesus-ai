@@ -266,7 +266,7 @@
                   <select id="google-calendar-picker"></select>
                 </label>
                 <div class="button-row">
-                  <a class="primary-button" id="google-connect" href="/api/integrations/google-calendar/connect?returnTo=/dashboard/demo/salon-crm">Connect Google</a>
+                  <a class="primary-button" id="google-connect" href="/api/integrations/google-calendar/connect?returnTo=%2Fdashboard%2Fdemo%2Fsalon-crm" target="_top">Connect Google</a>
                   <button class="secondary-button" id="refresh-google-calendars">Refresh</button>
                 </div>
                 <button class="primary-button" data-open-selected="google">Create selected event</button>
@@ -274,9 +274,17 @@
             </article>
             <article class="panel-card">
               <p class="eyebrow">Outlook Calendar</p>
-              <h2>Microsoft calendar handoff</h2>
-              <p>Open selected appointments in Outlook on the web with a prefilled booking draft. Two-way sync needs a Microsoft Entra app and Microsoft Graph calendar permissions.</p>
-              <button class="primary-button" data-open-selected="outlook">Open selected in Outlook</button>
+              <h2>Microsoft 365 calendar sync</h2>
+              <p>Create the selected appointment as a real Outlook event after connecting Microsoft 365 with calendar access.</p>
+              <div class="google-live-card">
+                <div id="outlook-calendar-status" class="google-calendar-status">Checking Outlook connection...</div>
+                <div class="button-row">
+                  <a class="primary-button" id="outlook-connect" href="/api/integrations/outlook/connect?returnTo=%2Fdashboard%2Fdemo%2Fsalon-crm" target="_top">Connect Outlook</a>
+                  <button class="secondary-button" id="refresh-outlook-status">Refresh</button>
+                </div>
+                <button class="primary-button" data-open-selected="outlook">Create selected event</button>
+                <button class="secondary-button" id="open-outlook-draft" type="button">Open Outlook draft</button>
+              </div>
             </article>
             <article class="panel-card">
               <p class="eyebrow">ICS</p>

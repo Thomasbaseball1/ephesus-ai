@@ -95,6 +95,8 @@ let payments = loadPayments();
 let timeOffBlocks = loadTimeOffBlocks();
 let selectedId = appointments[0]?.id || null;
 let googleCalendarChoices = [];
+let outlookCalendarReady = false;
+let outlookCalendarAccount = "";
 let pendingSlot = null;
 let currentScheduleDate = "2026-06-28";
 let calendarMode = "day";
@@ -606,6 +608,14 @@ function setGoogleStatus(message, tone = "ok") {
   });
 }
 
+function setOutlookStatus(message, tone = "ok") {
+  const status = qs("#outlook-calendar-status");
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle("warning", tone === "warning");
+  status.classList.toggle("error", tone === "error");
+}
+
 function selectedGoogleCalendarChoice() {
   const picker = qs("#google-calendar-picker");
   if (!picker?.value) return null;
@@ -665,6 +675,38 @@ async function loadGoogleCalendars() {
     googleCalendarChoices = [];
     renderGoogleCalendarPicker();
     setGoogleStatus("Could not load Google calendars. Check OAuth setup and try Refresh.", "error");
+  }
+}
+
+async function loadOutlookStatus() {
+  setOutlookStatus("Checking Outlook connection...", "warning");
+
+  try {
+    const response = await fetch("/api/salon-crm/outlook-status", { credentials: "same-origin" });
+    if (response.status === 401) {
+      outlookCalendarReady = false;
+      outlookCalendarAccount = "";
+      setOutlookStatus("Sign in to the Ephesus portal, then connect Outlook.", "warning");
+      return;
+    }
+    if (!response.ok) throw new Error("Outlook lookup failed");
+
+    const data = await response.json();
+    outlookCalendarReady = Boolean(data.connected && data.integration?.calendarReady);
+    outlookCalendarAccount = data.integration?.email || "";
+
+    if (outlookCalendarReady) {
+      setOutlookStatus(`Live Outlook sync ready: ${outlookCalendarAccount}`);
+    } else if (data.connected) {
+      setOutlookStatus("Outlook is connected for email. Reconnect Outlook once to grant calendar access.", "warning");
+    } else {
+      setOutlookStatus("No Outlook account connected yet.", "warning");
+    }
+  } catch (error) {
+    console.error(error);
+    outlookCalendarReady = false;
+    outlookCalendarAccount = "";
+    setOutlookStatus("Could not load Outlook status. Check Microsoft OAuth setup and try Refresh.", "error");
   }
 }
 
@@ -1042,11 +1084,46 @@ async function createSelectedGoogleEvent() {
   }
 }
 
+async function createSelectedOutlookEvent() {
+  const appointment = selectedAppointment();
+  if (!appointment) return showToast("Select an appointment first.");
+  if (!outlookCalendarReady) {
+    showToast("Connect Outlook with calendar access first.");
+    switchView("integrations");
+    return;
+  }
+
+  try {
+    setOutlookStatus("Creating event in Outlook Calendar...", "warning");
+    const response = await fetch("/api/salon-crm/outlook-events", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ appointment }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Failed to create Outlook event");
+
+    setOutlookStatus(`Created in Outlook Calendar: ${outlookCalendarAccount || "connected account"}`);
+    if (data.htmlLink) window.open(data.htmlLink, "_blank", "noopener,noreferrer");
+    showToast("Outlook Calendar event created.");
+  } catch (error) {
+    console.error(error);
+    setOutlookStatus(error.message || "Failed to create Outlook Calendar event.", "error");
+    showToast(error.message || "Failed to create Outlook Calendar event.");
+  }
+}
+
 function openSelected(provider) {
   const appointment = selectedAppointment();
   if (!appointment) return showToast("Select an appointment first.");
   if (provider === "google") {
     createSelectedGoogleEvent();
+    return;
+  }
+  if (provider === "outlook") {
+    createSelectedOutlookEvent();
     return;
   }
   const url = provider === "google" ? googleCalendarUrl(appointment) : outlookCalendarUrl(appointment);
@@ -1632,6 +1709,13 @@ function init() {
   qs("#download-ics").addEventListener("click", downloadSelectedIcs);
   qs("#copy-summary").addEventListener("click", copySelectedSummary);
   qs("#refresh-google-calendars").addEventListener("click", loadGoogleCalendars);
+  qs("#refresh-outlook-status").addEventListener("click", loadOutlookStatus);
+  qs("#open-outlook-draft").addEventListener("click", () => {
+    const appointment = selectedAppointment();
+    if (!appointment) return showToast("Select an appointment first.");
+    window.open(outlookCalendarUrl(appointment), "_blank", "noopener,noreferrer");
+    showToast("Opened Outlook calendar draft.");
+  });
   qs("#google-calendar-picker").addEventListener("change", event => {
     localStorage.setItem(googleCalendarChoiceKey, event.target.value);
     const choice = selectedGoogleCalendarChoice();
@@ -1687,6 +1771,7 @@ function init() {
   if (selectedAppointment()) fillForm(selectedAppointment());
   checkLiveStatus();
   loadGoogleCalendars();
+  loadOutlookStatus();
 }
 
 init();

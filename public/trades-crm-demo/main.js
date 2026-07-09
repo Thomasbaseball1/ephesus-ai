@@ -1025,7 +1025,7 @@ function renderEmail() {
       <div class="email-source-actions">
         <button class="secondary-button" id="refresh-live-email" type="button">Refresh</button>
         <a class="connect-link" href="/api/integrations/google-calendar/connect?returnTo=%2Fdashboard%2Fdemo%2Ftrades-crm" target="_top">Google</a>
-        <a class="connect-link" href="/api/integrations/outlook/connect" target="_top">Outlook</a>
+        <a class="connect-link" href="/api/integrations/outlook/connect?returnTo=%2Fdashboard%2Fdemo%2Ftrades-crm" target="_top">Outlook</a>
       </div>
     </div>
     ${emails.map((email, index) => `
