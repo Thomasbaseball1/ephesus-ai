@@ -42,29 +42,70 @@ export const DEMO_TECHNICIANS = [
   { name: 'Priya', specialty: 'HVAC' },
 ] as const;
 
-let seeded = false;
+// Mirrors public/salon-crm-demo/app.js's seedEmployees/seedAppointments so
+// the phone bridge and the visual Salon Biz CRM demo describe the same
+// stylists and services.
+export const SALON_COMPANY = 'Ephesus Demo Salon CRM';
+export const SALON_STATUS = 'demo-crm-booking';
+export const SALON_DEFAULT_SERVICE = 'Gloss and style';
+export const SALON_DEFAULT_TECHNICIAN = 'Jules';
+export const SALON_DEFAULT_DURATION = 60;
 
-/** Idempotently seeds the demo catalog on first use. `db:push` only applies
- * schema (DDL), so data seeding happens lazily here instead of a separate
- * migration step the deploy pipeline would need to remember to run. */
-export async function ensureDemoCrmCatalogSeeded() {
-  if (seeded) return;
+export const SALON_SERVICES = [
+  { category: 'Styling', name: 'Gloss and style', durationMinutes: 60, price: 85 },
+  { category: 'Styling', name: 'Bridal styling', durationMinutes: 120, price: 225 },
+  { category: 'Color', name: 'Root touch-up', durationMinutes: 90, price: 110 },
+  { category: 'Color', name: 'Balayage', durationMinutes: 120, price: 195 },
+  { category: 'Color', name: 'Blonding', durationMinutes: 90, price: 175 },
+  { category: 'Color', name: 'Balayage consult', durationMinutes: 45, price: 0 },
+  { category: 'Cuts', name: 'Cut and blowout', durationMinutes: 60, price: 75 },
+  { category: 'Cuts', name: 'Texture treatment', durationMinutes: 90, price: 130 },
+  { category: 'Treatments', name: 'Deep conditioning treatment', durationMinutes: 45, price: 55 },
+] as const;
 
-  const existing = await db.select({ id: demoCrmServices.id }).from(demoCrmServices).limit(1);
+export const SALON_TECHNICIANS = [
+  { name: 'Jules', specialty: 'Gloss, color, bridal styling' },
+  { name: 'Amara', specialty: 'Balayage, blonding, consults' },
+  { name: 'Kenji', specialty: 'Cuts, blowouts, texture' },
+  { name: 'Sasha', specialty: 'Color consults, treatments' },
+] as const;
+
+const seededCompanies = new Set<string>();
+
+/** Idempotently seeds a demo catalog on first use for the given company.
+ * `db:push` only applies schema (DDL), so data seeding happens lazily here
+ * instead of a separate migration step the deploy pipeline would need to
+ * remember to run. */
+export async function ensureCatalogSeeded(
+  company: string,
+  services: ReadonlyArray<{ category: string; name: string; durationMinutes: number; price: number }>,
+  technicians: ReadonlyArray<{ name: string; specialty: string }>
+) {
+  if (seededCompanies.has(company)) return;
+
+  const existing = await db.select({ id: demoCrmServices.id }).from(demoCrmServices).where(eq(demoCrmServices.company, company)).limit(1);
   if (existing.length === 0) {
     await db.insert(demoCrmServices).values(
-      DEMO_SERVICES.map(service => ({ company: DEMO_COMPANY, ...service }))
+      services.map(service => ({ company, ...service }))
     );
   }
 
-  const existingTechs = await db.select({ id: demoCrmTechnicians.id }).from(demoCrmTechnicians).limit(1);
+  const existingTechs = await db.select({ id: demoCrmTechnicians.id }).from(demoCrmTechnicians).where(eq(demoCrmTechnicians.company, company)).limit(1);
   if (existingTechs.length === 0) {
     await db.insert(demoCrmTechnicians).values(
-      DEMO_TECHNICIANS.map(tech => ({ company: DEMO_COMPANY, ...tech }))
+      technicians.map(tech => ({ company, ...tech }))
     );
   }
 
-  seeded = true;
+  seededCompanies.add(company);
+}
+
+export async function ensureDemoCrmCatalogSeeded() {
+  return ensureCatalogSeeded(DEMO_COMPANY, DEMO_SERVICES, DEMO_TECHNICIANS);
+}
+
+export async function ensureSalonCatalogSeeded() {
+  return ensureCatalogSeeded(SALON_COMPANY, SALON_SERVICES, SALON_TECHNICIANS);
 }
 
 export type ToolInput = Record<string, unknown>;

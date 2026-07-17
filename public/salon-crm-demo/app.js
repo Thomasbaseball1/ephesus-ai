@@ -118,6 +118,52 @@ function saveAppointments() {
   localStorage.setItem(storageKey, JSON.stringify(appointments));
 }
 
+const phoneBookingsEndpoint = "/api/demo-crm/salon/bookings";
+
+function parsePhoneBookingNotes(notes) {
+  try {
+    const parsed = JSON.parse(notes || "{}");
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+async function syncPhoneBookings() {
+  try {
+    const response = await fetch(phoneBookingsEndpoint);
+    if (!response.ok) return;
+    const data = await response.json();
+    const rows = Array.isArray(data.bookings) ? data.bookings : [];
+    if (!rows.length) return;
+
+    const phoneAppointments = rows.map(row => {
+      const meta = parsePhoneBookingNotes(row.notes);
+      return {
+        id: `phone-${row.id}`,
+        client: row.name,
+        email: row.email,
+        phone: meta.phone || "",
+        service: meta.service || "Consultation",
+        stylist: meta.technician || stylists[0],
+        date: row.date,
+        start: row.timeSlot,
+        duration: Number(meta.duration) || 60,
+        status: "Booked",
+        notes: meta.notes ? `${meta.notes} (booked via phone)` : "Booked via phone with the Ephesus AI receptionist.",
+      };
+    });
+
+    const phoneIds = new Set(phoneAppointments.map(item => item.id));
+    appointments = [...phoneAppointments, ...appointments.filter(item => !phoneIds.has(item.id))];
+    syncCustomersFromAppointments();
+    renderAll();
+    showToast(`Loaded ${phoneAppointments.length} booking${phoneAppointments.length === 1 ? "" : "s"} from the AI receptionist.`);
+  } catch (err) {
+    console.error("Failed to sync phone bookings", err);
+  }
+}
+
 function loadEmployees() {
   try {
     const saved = JSON.parse(localStorage.getItem(employeeStorageKey));
@@ -1772,6 +1818,7 @@ function init() {
   checkLiveStatus();
   loadGoogleCalendars();
   loadOutlookStatus();
+  syncPhoneBookings();
 }
 
 init();
