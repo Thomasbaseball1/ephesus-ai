@@ -143,14 +143,21 @@ export default async function AdminPage() {
           <div className="admin-channel-grid">
             <div data-state="ready"><Phone /><span><strong>Vapi phone</strong><small>Assistant can call the demo booking endpoint</small></span><i /></div>
             <div data-state="ready"><CalendarDays /><span><strong>CRM calendar</strong><small>Imports phone bookings while the demo is open</small></span><i /></div>
-            <div data-state="ready"><PlugZap /><span><strong>Bridge endpoint</strong><small>/api/demo-crm/bookings</small></span><i /></div>
+            <div data-state="ready"><PlugZap /><span><strong>Bridge endpoints</strong><small>/api/demo-crm/{'{services,availability,bookings}'}</small></span><i /></div>
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-white/62">
             <p className="mb-2 font-semibold text-white">Vapi tool setup</p>
+            <p className="mb-2">
+              Three server tools, all POST, all accepting Vapi&apos;s tool-call envelope:
+            </p>
+            <ul className="mb-2 list-disc space-y-1 pl-5">
+              <li><code className="rounded bg-white/10 px-1.5 py-0.5 text-white">get_service_details</code> → <code className="rounded bg-white/10 px-1.5 py-0.5 text-white">POST /api/demo-crm/services</code> — pass <code>serviceName</code> for one service, or nothing for the full catalog (16 services across HVAC, Plumbing, Maintenance, Sales).</li>
+              <li><code className="rounded bg-white/10 px-1.5 py-0.5 text-white">check_availability</code> → <code className="rounded bg-white/10 px-1.5 py-0.5 text-white">POST /api/demo-crm/availability</code> — pass <code>date</code> plus optional <code>technician</code>, <code>serviceName</code>/<code>duration</code>, and <code>start</code> to check one slot.</li>
+              <li><code className="rounded bg-white/10 px-1.5 py-0.5 text-white">book_appointment</code> → <code className="rounded bg-white/10 px-1.5 py-0.5 text-white">POST /api/demo-crm/bookings</code> — send name, email, phone, service, technician, date, start, duration, and notes.</li>
+            </ul>
             <p>
-              Point the assistant function/webhook to <code className="rounded bg-white/10 px-1.5 py-0.5 text-white">POST https://ephesusai.com/api/demo-crm/bookings</code>.
-              Send name, email, phone, service, technician, date, start, duration, and notes. The demo calendar imports those rows and blocks same-technician overlaps.
+              Technicians are Ramos, Keisha, Dawson, and Priya. The demo calendar imports booked rows and blocks same-technician overlaps.
             </p>
           </div>
         </article>

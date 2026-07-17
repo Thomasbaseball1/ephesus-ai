@@ -5,7 +5,7 @@ import { Phone, PhoneOff, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-export const VapiDemo = () => {
+export const VapiDemo = ({ assistantId }: { assistantId?: string } = {}) => {
   const [isCallActive, setIsCallActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [callStatus, setCallStatus] = useState<string>("Ready to call");
@@ -68,14 +68,14 @@ export const VapiDemo = () => {
 
   const startCall = async () => {
     try {
-      const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
-      if (!assistantId) {
+      const targetAssistantId = assistantId || process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID;
+      if (!targetAssistantId) {
         console.error("Assistant ID not found");
         return;
       }
 
       setCallStatus("Connecting...");
-      await vapiRef.current?.start(assistantId);
+      await vapiRef.current?.start(targetAssistantId);
     } catch (error) {
       console.error("Failed to start call:", error);
       setCallStatus("Failed to connect");
