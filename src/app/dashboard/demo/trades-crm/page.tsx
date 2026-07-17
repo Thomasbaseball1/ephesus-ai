@@ -48,7 +48,7 @@ export default async function DashboardTradesCrmDemoPage({
       )}
 
       <section className="rounded-[1.75rem] border border-white/10 bg-slate-950/80 p-4 shadow-2xl shadow-slate-950/30 sm:p-6">
-        <VapiDemo />
+        <VapiDemo assistantId={process.env.NEXT_PUBLIC_VAPI_TRADES_DEMO_ASSISTANT_ID} />
       </section>
 
       <section className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 shadow-2xl shadow-slate-950/30">

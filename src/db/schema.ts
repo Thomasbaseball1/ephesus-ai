@@ -224,3 +224,25 @@ export const bookings = sqliteTable('bookings', {
   status: text('status').notNull().default('pending'),
   createdAt: text('created_at').notNull(),
 });
+
+// ─── Demo CRM Catalog (trades / HVAC + plumbing) ──────────────────────────────
+// Mirrors the seed data baked into public/trades-crm-demo/main.js so the phone
+// bridge and the visual CRM demo always describe the same services and techs.
+
+export const demoCrmServices = sqliteTable('demo_crm_services', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  company: text('company').notNull().default('Ephesus Demo Trades CRM'),
+  category: text('category').notNull(),
+  name: text('name').notNull(),
+  durationMinutes: integer('duration_minutes').notNull(),
+  price: integer('price').notNull().default(0),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+});
+
+export const demoCrmTechnicians = sqliteTable('demo_crm_technicians', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  company: text('company').notNull().default('Ephesus Demo Trades CRM'),
+  name: text('name').notNull(),
+  specialty: text('specialty'),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+});
