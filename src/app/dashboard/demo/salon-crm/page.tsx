@@ -29,10 +29,10 @@ export default async function DashboardSalonCrmDemoPage({
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3">
         <p className="text-sm text-slate-300">
-          Demo changes are saved in this browser only, so you can create, edit, import, export, and reset freely.
+          Demo changes are saved in this browser only, so you can create, edit, import, export, and reset freely. Appointments booked by calling the AI receptionist load in automatically at the top of the schedule.
         </p>
         <Link
-          href="/salon-crm-demo/index.html?v=20260708-outlook-sync"
+          href="/salon-crm-demo/index.html?v=20260717-phone-bookings"
           target="_blank"
           className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-semibold text-white/80 transition hover:border-white/30 hover:text-white"
         >
@@ -49,7 +49,7 @@ export default async function DashboardSalonCrmDemoPage({
       <section className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-slate-950 shadow-2xl shadow-slate-950/30">
         <iframe
           title="Salon Biz CRM interactive demo"
-          src="/salon-crm-demo/index.html?v=20260708-outlook-sync"
+          src="/salon-crm-demo/index.html?v=20260717-phone-bookings"
           className="h-[820px] w-full border-0"
         />
       </section>
