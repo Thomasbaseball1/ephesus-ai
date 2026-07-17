@@ -24,6 +24,7 @@
           <button class="nav-item active" data-view="schedule"><span>Dispatch</span></button>
           <button class="nav-item" data-view="dashboard"><span>Operations</span></button>
           <button class="nav-item" data-view="clients"><span>Customers</span></button>
+          <button class="nav-item" data-view="employees"><span>Technicians</span></button>
           <button class="nav-item" data-view="estimates"><span>Estimates</span><em>4</em></button>
           <button class="nav-item" data-view="payments"><span>Payments</span></button>
           <button class="nav-item" data-view="accounting"><span>Accounting</span></button>
@@ -207,6 +208,62 @@
               <div id="client-list"></div>
             </section>
             <section class="panel-card" id="client-profile"></section>
+          </div>
+        </section>
+
+        <section class="view" id="employees">
+          <div class="employee-layout">
+            <section class="panel-card">
+              <p class="eyebrow">Employee availability</p>
+              <h2>Technician roster</h2>
+              <div class="employee-summary" id="employee-summary"></div>
+              <div id="employee-list"></div>
+            </section>
+
+            <section class="panel-card">
+              <p class="eyebrow">Working hours</p>
+              <h2>Add or edit technician</h2>
+              <form id="employee-form">
+                <input id="employee-id" type="hidden" />
+                <label>Technician name<input id="employee-name" placeholder="Avery Johnson" /></label>
+                <div class="form-row">
+                  <label>Role<input id="employee-role" placeholder="HVAC technician" /></label>
+                  <label>Status<select id="employee-status"><option>Active</option><option>Inactive</option></select></label>
+                </div>
+                <div class="form-row">
+                  <label>Email<input id="employee-email" type="email" placeholder="avery@example.com" /></label>
+                  <label>Phone<input id="employee-phone" placeholder="(555) 010-2200" /></label>
+                </div>
+                <label>Trades / services<input id="employee-services" placeholder="No-cool, tune-ups, water heaters" /></label>
+                <div class="form-row">
+                  <label>Work start<input id="employee-work-start" type="time" value="08:00" /></label>
+                  <label>Work end<input id="employee-work-end" type="time" value="17:00" /></label>
+                </div>
+                <label>Working days<input id="employee-working-days" placeholder="Mon, Tue, Wed, Thu, Fri" /></label>
+                <div class="button-row">
+                  <button class="primary-button" type="submit">Save technician</button>
+                  <button class="secondary-button" id="clear-employee-form" type="button">Clear</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel-card">
+              <p class="eyebrow">Blocked time</p>
+              <h2>Time off / unavailable</h2>
+              <form id="time-off-form">
+                <label>Technician<select id="time-off-employee"></select></label>
+                <div class="form-row">
+                  <label>Date<input id="time-off-date" type="date" /></label>
+                  <label>Reason<input id="time-off-reason" placeholder="PTO, training, parts pickup" /></label>
+                </div>
+                <div class="form-row">
+                  <label>Start<input id="time-off-start" type="time" value="12:00" /></label>
+                  <label>End<input id="time-off-end" type="time" value="13:00" /></label>
+                </div>
+                <button class="primary-button" type="submit">Block time</button>
+              </form>
+              <div class="time-off-list" id="time-off-list"></div>
+            </section>
           </div>
         </section>
 

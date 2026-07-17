@@ -320,6 +320,32 @@ h2 { margin-bottom: 10px; font-size: 20px; letter-spacing: 0; }
   background: #fff;
 }
 
+.calendar-cell.blocked-slot {
+  background: #f1f4f6;
+}
+
+.availability-block {
+  display: grid;
+  gap: 3px;
+  margin-bottom: 6px;
+  padding: 7px;
+  border: 1px dashed #b7c5ce;
+  border-radius: 7px;
+  background: #e8edf1;
+  color: var(--steel);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.availability-block strong {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.availability-block span {
+  color: var(--muted);
+}
+
 .booking-card {
   display: grid;
   gap: 4px;
@@ -550,7 +576,7 @@ textarea {
   font-size: clamp(28px, 5vw, 46px);
 }
 
-.metrics-grid, .split-layout, .integration-grid {
+.metrics-grid, .split-layout, .integration-grid, .employee-layout {
   display: grid;
   gap: 16px;
   margin-top: 16px;
@@ -583,6 +609,83 @@ textarea {
 
 .integration-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.employee-layout {
+  grid-template-columns: minmax(320px, 1fr) minmax(360px, 480px);
+  align-items: start;
+}
+
+.employee-layout .panel-card:first-child {
+  grid-row: span 2;
+}
+
+.employee-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.employee-summary article {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.employee-summary span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.employee-summary strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.employee-row,
+.time-off-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-2);
+}
+
+.employee-row.inactive {
+  opacity: .62;
+}
+
+.employee-row div,
+.time-off-row div {
+  display: grid;
+  gap: 4px;
+}
+
+.employee-row span,
+.time-off-row span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.employee-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.time-off-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .kanban-board {
@@ -968,7 +1071,8 @@ textarea {
   .app-shell { grid-template-columns: 88px minmax(0, 1fr); }
   .brand div:not(.brand-mark), .nav-item span, .sync-card p, .sync-card strong { display: none; }
   .nav-item { justify-content: center; }
-  .schedule-layout, .split-layout, .integration-grid, .kanban-board, .ops-strip { grid-template-columns: 1fr; }
+  .schedule-layout, .split-layout, .integration-grid, .employee-layout, .kanban-board, .ops-strip { grid-template-columns: 1fr; }
+  .employee-layout .panel-card:first-child { grid-row: auto; }
   .booking-panel { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
@@ -1031,7 +1135,8 @@ textarea {
   .calendar-controls { grid-template-columns: 1fr 1fr; }
   .calendar-controls input { grid-column: 1 / -1; }
   .booking-panel, .metrics-grid, .option-grid, .tool-stack { grid-template-columns: 1fr; }
-  .form-row, .button-row, .action-grid, .profile-grid { grid-template-columns: 1fr; }
+  .form-row, .button-row, .action-grid, .profile-grid, .employee-summary, .employee-row, .time-off-row { grid-template-columns: 1fr; }
+  .employee-actions { justify-content: stretch; }
 }
 
 @media (max-width: 420px) {

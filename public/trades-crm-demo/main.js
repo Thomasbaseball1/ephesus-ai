@@ -1,8 +1,9 @@
-const stylists = ["Ramos", "Keisha", "Dawson", "Priya"];
 const storageKey = "dispatchboard-jobs-v1";
 const importedKey = "dispatchboard-import-count-v1";
 const paymentsKey = "dispatchboard-payments-v1";
 const demoBridgeSeenKey = "dispatchboard-demo-bridge-seen-v1";
+const technicianStorageKey = "dispatchboard-technicians-v1";
+const timeOffStorageKey = "dispatchboard-time-off-v1";
 const legacySeedDate = "2026-06-28";
 
 const services = [
@@ -35,6 +36,18 @@ const seedAppointments = [
 const seedPayments = [
   { id: "pay-1", appointmentId: "apt-1", client: "Bennett Residence", amount: 149, method: "Card", note: "Diagnostic collected on site", date: "2026-06-28", createdAt: "2026-06-28T09:58:00" },
   { id: "pay-2", appointmentId: "apt-2", client: "Chen Dental Group", amount: 75, method: "Deposit", note: "Commercial dispatch deposit", date: "2026-06-28", createdAt: "2026-06-28T10:05:00" }
+];
+
+const seedTechnicians = [
+  { id: "tech-1", name: "Ramos", role: "HVAC senior tech", email: "ramos@dispatchboard.local", phone: "(555) 010-1101", services: "No-cool calls, diagnostics, tune-ups", workStart: "08:00", workEnd: "17:00", workingDays: "Mon, Tue, Wed, Thu, Fri", status: "Active" },
+  { id: "tech-2", name: "Keisha", role: "Plumbing lead", email: "keisha@dispatchboard.local", phone: "(555) 010-1102", services: "Water heaters, leaks, fixtures", workStart: "08:30", workEnd: "18:00", workingDays: "Mon, Tue, Wed, Thu, Fri", status: "Active" },
+  { id: "tech-3", name: "Dawson", role: "Drain specialist", email: "dawson@dispatchboard.local", phone: "(555) 010-1103", services: "Drain cleaning, sewer camera, emergency calls", workStart: "09:00", workEnd: "17:30", workingDays: "Mon, Tue, Wed, Thu, Fri", status: "Active" },
+  { id: "tech-4", name: "Priya", role: "Comfort advisor", email: "priya@dispatchboard.local", phone: "(555) 010-1104", services: "System estimates, memberships, commercial walk-throughs", workStart: "10:00", workEnd: "18:00", workingDays: "Tue, Wed, Thu, Fri, Sat", status: "Active" }
+];
+
+const seedTimeOffBlocks = [
+  { id: "off-1", employee: "Priya", date: "2026-06-28", start: "13:00", end: "16:00", reason: "Warehouse pickup / supplier run" },
+  { id: "off-2", employee: "Dawson", date: "2026-06-28", start: "08:00", end: "09:00", reason: "Safety meeting" }
 ];
 
 const demoEmails = [
@@ -92,6 +105,7 @@ const viewTitles = {
   schedule: "Dispatch Board",
   dashboard: "Operations Command Center",
   clients: "Customer CRM",
+  employees: "Technician Availability",
   estimates: "Estimates + Proposals",
   email: "Email Hub",
   payments: "Payments",
@@ -104,6 +118,9 @@ const viewTitles = {
 
 let appointments = loadAppointments();
 let payments = loadPayments();
+let technicians = loadTechnicians();
+let stylists = activeTechnicianNames();
+let timeOffBlocks = loadTimeOffBlocks();
 let emails = demoEmails;
 let emailSource = "demo";
 let emailIntegrationStatus = { connected: false, accounts: [], counts: { gmail: 0, outlook: 0 } };
@@ -173,10 +190,67 @@ function savePayments() {
   localStorage.setItem(paymentsKey, JSON.stringify(payments));
 }
 
+function loadTechnicians() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(technicianStorageKey));
+    const rows = Array.isArray(stored) && stored.length ? stored : seedTechnicians;
+    return rows.map((tech, index) => ({
+      id: tech.id || `tech-${index + 1}`,
+      name: tech.name || `Technician ${index + 1}`,
+      role: tech.role || "Field technician",
+      email: tech.email || "",
+      phone: tech.phone || "",
+      services: tech.services || "Service calls",
+      workStart: tech.workStart || "08:00",
+      workEnd: tech.workEnd || "17:00",
+      workingDays: tech.workingDays || "Mon, Tue, Wed, Thu, Fri",
+      status: tech.status || "Active"
+    }));
+  } catch {
+    return seedTechnicians.map(item => ({ ...item }));
+  }
+}
+
+function saveTechnicians() {
+  localStorage.setItem(technicianStorageKey, JSON.stringify(technicians));
+  stylists = activeTechnicianNames();
+}
+
+function activeTechnicianNames() {
+  const active = technicians.filter(tech => tech.status !== "Inactive").map(tech => tech.name);
+  return active.length ? active : technicians.map(tech => tech.name);
+}
+
+function loadTimeOffBlocks() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(timeOffStorageKey));
+    const rows = Array.isArray(stored) && stored.length ? stored : seedTimeOffBlocks;
+    const seedIds = new Set(seedTimeOffBlocks.map(item => item.id));
+    const onlySeedBlocks = rows.length > 0 && rows.every(item => seedIds.has(item.id) && item.date === legacySeedDate);
+    return rows.map(item => ({ ...item, date: onlySeedBlocks ? todayIso() : (item.date || todayIso()) }));
+  } catch {
+    return seedTimeOffBlocks.map(item => ({ ...item, date: todayIso() }));
+  }
+}
+
+function saveTimeOffBlocks() {
+  localStorage.setItem(timeOffStorageKey, JSON.stringify(timeOffBlocks));
+}
+
 function todayIso() {
   const date = new Date();
   const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return offsetDate.toISOString().slice(0, 10);
+}
+
+function escapeHtml(value = "") {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
 }
 
 function normalizeAppointments(items) {
@@ -533,8 +607,15 @@ function renderSchedule() {
     stylists.forEach(stylist => {
       const displayHour = Number(hour.split(":")[0]);
       const hourNumber = displayHour >= 1 && displayHour <= 5 ? displayHour + 12 : displayHour;
+      const slotStart = `${String(hourNumber).padStart(2, "0")}:00`;
+      const availabilityConflict = findAvailabilityConflict({ id: "slot-preview", date: viewDate, start: slotStart, duration: 60, stylist });
       const matches = appointments.filter(item => item.date === viewDate && item.stylist === stylist && Number(item.start.split(":")[0]) === hourNumber);
-      chunks.push(`<div class="calendar-cell">${matches.map(renderBookingCard).join("")}</div>`);
+      chunks.push(`
+        <div class="calendar-cell ${availabilityConflict ? "blocked-slot" : ""}">
+          ${availabilityConflict ? renderAvailabilityBlock(availabilityConflict) : ""}
+          ${matches.map(renderBookingCard).join("")}
+        </div>
+      `);
     });
   });
 
@@ -594,7 +675,7 @@ function clearForm() {
   qs("#client-input").value = "";
   qs("#email-input").value = "";
   qs("#service-input").value = services[0].name;
-  qs("#stylist-input").value = stylists[0];
+  qs("#stylist-input").value = stylists[0] || "";
   qs("#date-input").value = viewDate;
   qs("#start-input").value = "09:00";
   qs("#duration-input").value = services[0].duration;
@@ -701,6 +782,53 @@ function minutesFromTime(time) {
   return hour * 60 + minute;
 }
 
+function weekdayShort(dateIso) {
+  return new Date(`${dateIso}T12:00:00`).toLocaleDateString("en-US", { weekday: "short" });
+}
+
+function findAvailabilityConflict(appointment) {
+  const tech = technicians.find(item => item.name === appointment.stylist);
+  if (!tech || tech.status === "Inactive") {
+    return { type: "inactive", message: `${appointment.stylist || "This technician"} is inactive or missing from the technician roster` };
+  }
+
+  const workDays = tech.workingDays.split(",").map(day => day.trim().slice(0, 3).toLowerCase()).filter(Boolean);
+  const day = weekdayShort(appointment.date).toLowerCase();
+  if (!workDays.includes(day)) {
+    return { type: "day", message: `${tech.name} is not scheduled to work on ${weekdayShort(appointment.date)}` };
+  }
+
+  const start = minutesFromTime(appointment.start);
+  const end = start + Number(appointment.duration || 0);
+  const workStart = minutesFromTime(tech.workStart);
+  const workEnd = minutesFromTime(tech.workEnd);
+  if (start < workStart || end > workEnd) {
+    return { type: "hours", message: `${tech.name} works ${tech.workStart}-${tech.workEnd}. Pick a time inside that window` };
+  }
+
+  const blocked = timeOffBlocks.find(block => {
+    if (block.employee !== appointment.stylist || block.date !== appointment.date) return false;
+    const blockStart = minutesFromTime(block.start);
+    const blockEnd = minutesFromTime(block.end);
+    return start < blockEnd && end > blockStart;
+  });
+
+  if (blocked) {
+    return { type: "time-off", message: `${tech.name} is blocked ${blocked.start}-${blocked.end}: ${blocked.reason || "Unavailable"}` };
+  }
+
+  return null;
+}
+
+function renderAvailabilityBlock(conflict) {
+  return `
+    <div class="availability-block">
+      <strong>Unavailable</strong>
+      <span>${escapeHtml(conflict.message)}</span>
+    </div>
+  `;
+}
+
 function findConflicts(appointment) {
   const start = minutesFromTime(appointment.start);
   const end = start + Number(appointment.duration);
@@ -716,7 +844,7 @@ function findConflicts(appointment) {
 function showConflict(conflicts) {
   const warning = qs("#conflict-warning");
   warning.hidden = false;
-  warning.innerHTML = `<strong>Dispatch conflict:</strong> ${conflicts.map(item => `${item.client} (${formatTime(toDate(item))}-${formatTime(toDate(item, true))})`).join(", ")}. Check "Allow double booking" if you want to save anyway.`;
+  warning.innerHTML = `<strong>Dispatch conflict:</strong> ${conflicts.map(item => typeof item === "string" ? escapeHtml(item) : `${escapeHtml(item.client)} (${formatTime(toDate(item))}-${formatTime(toDate(item, true))})`).join(", ")}. Check "Allow double booking" if you want to save anyway.`;
 }
 
 function hideConflict() {
@@ -765,6 +893,173 @@ function renderServiceOptions() {
       ${items.map(service => `<option value="${service.name}">${service.name} - ${formatCurrency(service.price)}</option>`).join("")}
     </optgroup>
   `).join("");
+}
+
+function renderTechnicianOptions(selected = qs("#stylist-input")?.value) {
+  const options = stylists.map(tech => `<option ${tech === selected ? "selected" : ""}>${escapeHtml(tech)}</option>`).join("");
+  qs("#stylist-input").innerHTML = options;
+  qs("#time-off-employee").innerHTML = options;
+}
+
+function renderEmployees() {
+  const activeCount = technicians.filter(tech => tech.status !== "Inactive").length;
+  qs("#employee-summary").innerHTML = `
+    <article><span>Active techs</span><strong>${activeCount}</strong></article>
+    <article><span>Blocked slots</span><strong>${timeOffBlocks.length}</strong></article>
+    <article><span>Coverage</span><strong>${stylists.length ? `${stylists.length} columns` : "None"}</strong></article>
+  `;
+
+  qs("#employee-list").innerHTML = technicians.map(tech => `
+    <article class="employee-row ${tech.status === "Inactive" ? "inactive" : ""}">
+      <div>
+        <strong>${escapeHtml(tech.name)}</strong>
+        <span>${escapeHtml(tech.role)} - ${escapeHtml(tech.services)}</span>
+        <span>${escapeHtml(tech.workStart)}-${escapeHtml(tech.workEnd)} - ${escapeHtml(tech.workingDays)}</span>
+      </div>
+      <div class="employee-actions">
+        <button class="secondary-button" type="button" data-edit-employee="${escapeHtml(tech.id)}">Edit</button>
+        <button class="secondary-button" type="button" data-toggle-employee="${escapeHtml(tech.id)}">${tech.status === "Inactive" ? "Activate" : "Deactivate"}</button>
+      </div>
+    </article>
+  `).join("");
+}
+
+function clearEmployeeForm() {
+  qs("#employee-id").value = "";
+  qs("#employee-name").value = "";
+  qs("#employee-role").value = "";
+  qs("#employee-email").value = "";
+  qs("#employee-phone").value = "";
+  qs("#employee-services").value = "";
+  qs("#employee-work-start").value = "08:00";
+  qs("#employee-work-end").value = "17:00";
+  qs("#employee-working-days").value = "Mon, Tue, Wed, Thu, Fri";
+  qs("#employee-status").value = "Active";
+}
+
+function fillEmployeeForm(tech) {
+  qs("#employee-id").value = tech.id;
+  qs("#employee-name").value = tech.name;
+  qs("#employee-role").value = tech.role;
+  qs("#employee-email").value = tech.email;
+  qs("#employee-phone").value = tech.phone;
+  qs("#employee-services").value = tech.services;
+  qs("#employee-work-start").value = tech.workStart;
+  qs("#employee-work-end").value = tech.workEnd;
+  qs("#employee-working-days").value = tech.workingDays;
+  qs("#employee-status").value = tech.status;
+}
+
+function handleEmployeeSubmit(event) {
+  event.preventDefault();
+  const name = qs("#employee-name").value.trim();
+  if (!name) return showToast("Enter a technician name.");
+
+  const id = qs("#employee-id").value || `tech-${Date.now()}`;
+  const previous = technicians.find(tech => tech.id === id);
+  const tech = {
+    id,
+    name,
+    role: qs("#employee-role").value.trim() || "Field technician",
+    email: qs("#employee-email").value.trim(),
+    phone: qs("#employee-phone").value.trim(),
+    services: qs("#employee-services").value.trim() || "Service calls",
+    workStart: qs("#employee-work-start").value,
+    workEnd: qs("#employee-work-end").value,
+    workingDays: qs("#employee-working-days").value.trim() || "Mon, Tue, Wed, Thu, Fri",
+    status: qs("#employee-status").value
+  };
+
+  if (minutesFromTime(tech.workEnd) <= minutesFromTime(tech.workStart)) {
+    return showToast("End time must be after start time.");
+  }
+
+  const existingIndex = technicians.findIndex(item => item.id === id);
+  if (existingIndex >= 0) technicians[existingIndex] = tech;
+  else technicians.push(tech);
+
+  if (previous && previous.name !== tech.name) {
+    appointments = appointments.map(item => item.stylist === previous.name ? { ...item, stylist: tech.name } : item);
+    timeOffBlocks = timeOffBlocks.map(item => item.employee === previous.name ? { ...item, employee: tech.name } : item);
+  }
+
+  saveTechnicians();
+  saveAppointments();
+  saveTimeOffBlocks();
+  renderTechnicianOptions(tech.status === "Inactive" ? stylists[0] : tech.name);
+  renderAll();
+  clearEmployeeForm();
+  showToast("Technician schedule saved.");
+}
+
+function handleEmployeeListClick(event) {
+  const editButton = event.target.closest("[data-edit-employee]");
+  const toggleButton = event.target.closest("[data-toggle-employee]");
+  if (!editButton && !toggleButton) return;
+
+  const id = editButton?.dataset.editEmployee || toggleButton?.dataset.toggleEmployee;
+  const tech = technicians.find(item => item.id === id);
+  if (!tech) return;
+
+  if (editButton) {
+    fillEmployeeForm(tech);
+    qs("#employee-name").focus();
+    return;
+  }
+
+  tech.status = tech.status === "Inactive" ? "Active" : "Inactive";
+  saveTechnicians();
+  renderTechnicianOptions();
+  renderAll();
+  showToast(`${tech.name} ${tech.status === "Inactive" ? "removed from active dispatch" : "returned to dispatch"}.`);
+}
+
+function renderTimeOff() {
+  qs("#time-off-list").innerHTML = timeOffBlocks
+    .slice()
+    .sort((a, b) => `${a.date}T${a.start}`.localeCompare(`${b.date}T${b.start}`))
+    .map(block => `
+      <article class="time-off-row">
+        <div>
+          <strong>${escapeHtml(block.employee)} - ${escapeHtml(block.date)}</strong>
+          <span>${escapeHtml(block.start)}-${escapeHtml(block.end)} - ${escapeHtml(block.reason || "Unavailable")}</span>
+        </div>
+        <button class="secondary-button" type="button" data-delete-time-off="${escapeHtml(block.id)}">Remove</button>
+      </article>
+    `).join("") || `<p class="subline">No blocked technician time yet.</p>`;
+}
+
+function handleTimeOffSubmit(event) {
+  event.preventDefault();
+  const start = qs("#time-off-start").value;
+  const end = qs("#time-off-end").value;
+  if (minutesFromTime(end) <= minutesFromTime(start)) return showToast("Blocked end time must be after start time.");
+
+  timeOffBlocks.push({
+    id: `off-${Date.now()}`,
+    employee: qs("#time-off-employee").value,
+    date: qs("#time-off-date").value || viewDate,
+    start,
+    end,
+    reason: qs("#time-off-reason").value.trim() || "Unavailable"
+  });
+
+  saveTimeOffBlocks();
+  qs("#time-off-date").value = viewDate;
+  qs("#time-off-start").value = "12:00";
+  qs("#time-off-end").value = "13:00";
+  qs("#time-off-reason").value = "";
+  renderAll();
+  showToast("Blocked time added.");
+}
+
+function handleTimeOffClick(event) {
+  const button = event.target.closest("[data-delete-time-off]");
+  if (!button) return;
+  timeOffBlocks = timeOffBlocks.filter(block => block.id !== button.dataset.deleteTimeOff);
+  saveTimeOffBlocks();
+  renderAll();
+  showToast("Blocked time removed.");
 }
 
 function applyServiceDefaults(force = false) {
@@ -868,6 +1163,13 @@ function handleBookingSubmit(event) {
     paymentStatus: qs("#payment-status-input").value,
     notes: qs("#notes-input").value.trim()
   };
+
+  const availabilityConflict = findAvailabilityConflict(appointment);
+  if (availabilityConflict && !qs("#allow-overlap-input").checked) {
+    showConflict([availabilityConflict.message]);
+    showToast("This technician is unavailable at that time.");
+    return;
+  }
 
   const conflicts = findConflicts(appointment);
   if (conflicts.length && !qs("#allow-overlap-input").checked) {
@@ -1322,6 +1624,8 @@ function renderAll() {
   renderAccounting();
   renderPhones();
   renderTeam();
+  renderEmployees();
+  renderTimeOff();
   renderToolStack();
   renderReports();
   renderMetrics();
@@ -1329,11 +1633,16 @@ function renderAll() {
 
 function init() {
   renderServiceOptions();
-  qs("#stylist-input").innerHTML = stylists.map(stylist => `<option>${stylist}</option>`).join("");
+  renderTechnicianOptions();
   qsa("[data-view]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.view)));
   qsa("[data-view-jump]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.viewJump)));
   qsa("[data-demo-action]").forEach(button => button.addEventListener("click", () => showToast(`${button.dataset.demoAction} queued in demo mode.`)));
   qs("#booking-form").addEventListener("submit", handleBookingSubmit);
+  qs("#employee-form").addEventListener("submit", handleEmployeeSubmit);
+  qs("#clear-employee-form").addEventListener("click", clearEmployeeForm);
+  qs("#employee-list").addEventListener("click", handleEmployeeListClick);
+  qs("#time-off-form").addEventListener("submit", handleTimeOffSubmit);
+  qs("#time-off-list").addEventListener("click", handleTimeOffClick);
   qs("#payment-form").addEventListener("submit", recordPayment);
   qs("#estimate-form").addEventListener("submit", handleEstimateSubmit);
   ["#estimate-base", "#estimate-recommended", "#estimate-premium", "#estimate-customer"].forEach(selector => {
@@ -1391,6 +1700,11 @@ function init() {
   qs("#reset-demo").addEventListener("click", () => {
     appointments = seedAppointments.map(item => ({ ...item, date: todayIso() }));
     payments = seedPayments.map(item => ({ ...item, date: todayIso(), createdAt: `${todayIso()}T${(item.createdAt || "09:00:00").slice(11, 19)}` }));
+    technicians = seedTechnicians.map(item => ({ ...item }));
+    timeOffBlocks = seedTimeOffBlocks.map(item => ({ ...item, date: todayIso() }));
+    saveTechnicians();
+    saveTimeOffBlocks();
+    renderTechnicianOptions();
     viewDate = todayIso();
     selectedId = appointments[0].id;
     localStorage.removeItem(importedKey);
@@ -1424,6 +1738,8 @@ function init() {
   renderClientSuggestions();
   renderAll();
   clearForm();
+  clearEmployeeForm();
+  qs("#time-off-date").value = viewDate;
   checkLiveStatus();
   loadLiveEmails();
   renderCalendarIntegrationStatus();
