@@ -64,14 +64,19 @@
             <section class="calendar-panel">
               <div class="calendar-header">
                 <div>
-                <p class="eyebrow">Today</p>
+                  <p class="eyebrow" id="calendar-eyebrow">Today</p>
                   <h2 id="schedule-date-title">Today's dispatch</h2>
+                  <div class="date-nav">
+                    <button class="secondary-button" id="previous-day" type="button">Prev</button>
+                    <input id="schedule-date-picker" type="date" />
+                    <button class="secondary-button" id="today-button" type="button">Today</button>
+                    <button class="secondary-button" id="next-day" type="button">Next</button>
+                  </div>
                 </div>
-                <div class="calendar-controls">
-                  <button class="secondary-button" id="previous-day" type="button">Prev</button>
-                  <input id="schedule-date-picker" type="date" />
-                  <button class="secondary-button" id="today-button" type="button">Today</button>
-                  <button class="secondary-button" id="next-day" type="button">Next</button>
+                <div class="segmented" aria-label="Calendar mode">
+                  <button class="selected" type="button" data-calendar-mode="day">Day</button>
+                  <button type="button" data-calendar-mode="week">Week</button>
+                  <button type="button" data-calendar-mode="team">Team</button>
                 </div>
               </div>
               <div class="calendar-grid" id="calendar-grid"></div>

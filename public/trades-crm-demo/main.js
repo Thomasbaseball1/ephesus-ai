@@ -126,6 +126,8 @@ let emailSource = "demo";
 let emailIntegrationStatus = { connected: false, accounts: [], counts: { gmail: 0, outlook: 0 } };
 let viewDate = todayIso();
 let selectedId = appointments.find(item => item.date === viewDate)?.id || appointments[0]?.id || null;
+let calendarMode = "day";
+let pendingSlot = null;
 let calendarIntegrations = {
   google: { connected: false, integrations: [], selectedIntegrationId: null, selectedCalendarId: null },
   outlook: { connected: false, calendarReady: false, email: "" }
@@ -287,10 +289,30 @@ function formatScheduleDate(dateIso) {
   return date.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 }
 
+function formatShortDate(dateIso) {
+  const date = new Date(`${dateIso}T12:00:00`);
+  return date.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+}
+
 function shiftDate(dateIso, days) {
   const date = new Date(`${dateIso}T12:00:00`);
   date.setDate(date.getDate() + days);
   return date.toISOString().slice(0, 10);
+}
+
+function startOfWeek(dateIso = viewDate) {
+  const date = new Date(`${dateIso}T12:00:00`);
+  date.setDate(date.getDate() - date.getDay());
+  return date.toISOString().slice(0, 10);
+}
+
+function weekDates(dateIso = viewDate) {
+  const start = startOfWeek(dateIso);
+  return Array.from({ length: 7 }, (_, index) => shiftDate(start, index));
+}
+
+function scheduleHours() {
+  return ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
 }
 
 function showToast(message) {
@@ -376,7 +398,7 @@ async function syncDemoCrmBookings(showToastOnImport = true) {
 }
 
 function selectedAppointment() {
-  return appointments.find(item => item.id === selectedId) || appointments.find(item => item.date === viewDate) || appointments[0] || null;
+  return selectedId ? appointments.find(item => item.id === selectedId) || null : null;
 }
 
 function toDate(appointment, end = false) {
@@ -389,6 +411,34 @@ function toDate(appointment, end = false) {
 
 function formatTime(date) {
   return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+}
+
+function formatHourLabel(time) {
+  const [hour, minute] = time.split(":").map(Number);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${String(minute).padStart(2, "0")} ${suffix}`;
+}
+
+function appointmentsOverlap(first, second) {
+  const firstStart = toDate(first).getTime();
+  const firstEnd = toDate(first, true).getTime();
+  const secondStart = toDate(second).getTime();
+  const secondEnd = toDate(second, true).getTime();
+  return firstStart < secondEnd && firstEnd > secondStart;
+}
+
+function findBookingConflict(appointment) {
+  return appointments.find(item => (
+    item.id !== appointment.id &&
+    item.date === appointment.date &&
+    item.stylist === appointment.stylist &&
+    appointmentsOverlap(appointment, item)
+  ));
+}
+
+function conflictMessage(appointment, conflict) {
+  return `${appointment.stylist} is already booked ${formatTime(toDate(conflict))}-${formatTime(toDate(conflict, true))} with ${conflict.client}.`;
 }
 
 function formatDateRange(appointment) {
@@ -597,30 +647,115 @@ async function syncSelectedToProvider(provider) {
 }
 
 function renderSchedule() {
-  const hours = ["9:00", "10:00", "11:00", "12:00", "1:00", "2:00", "3:00", "4:00", "5:00"];
-  const chunks = [`<div class="grid-head">Time</div>`, ...stylists.map(stylist => `<div class="grid-head">${stylist}</div>`)];
-  qs("#schedule-date-title").textContent = formatScheduleDate(viewDate);
-  qs("#schedule-date-picker").value = viewDate;
+  renderCalendarHeader();
+  if (calendarMode === "week") return renderWeekSchedule();
+  if (calendarMode === "team") return renderTeamSchedule();
+  return renderDaySchedule();
+}
 
-  hours.forEach(hour => {
-    chunks.push(`<div class="time-cell">${hour}</div>`);
-    stylists.forEach(stylist => {
-      const displayHour = Number(hour.split(":")[0]);
-      const hourNumber = displayHour >= 1 && displayHour <= 5 ? displayHour + 12 : displayHour;
-      const slotStart = `${String(hourNumber).padStart(2, "0")}:00`;
-      const availabilityConflict = findAvailabilityConflict({ id: "slot-preview", date: viewDate, start: slotStart, duration: 60, stylist });
-      const matches = appointments.filter(item => item.date === viewDate && item.stylist === stylist && Number(item.start.split(":")[0]) === hourNumber);
+function renderCalendarHeader() {
+  const dates = weekDates();
+  qs("#schedule-date-picker").value = viewDate;
+  qsa("[data-calendar-mode]").forEach(button => button.classList.toggle("selected", button.dataset.calendarMode === calendarMode));
+  if (calendarMode === "week") {
+    qs("#calendar-eyebrow").textContent = "Week view";
+    qs("#schedule-date-title").textContent = `${formatShortDate(dates[0])} - ${formatShortDate(dates[6])}`;
+    return;
+  }
+  if (calendarMode === "team") {
+    qs("#calendar-eyebrow").textContent = "Team view";
+    qs("#schedule-date-title").textContent = `${formatShortDate(dates[0])} - ${formatShortDate(dates[6])}`;
+    return;
+  }
+  qs("#calendar-eyebrow").textContent = viewDate === todayIso() ? "Today" : "Selected day";
+  qs("#schedule-date-title").textContent = formatScheduleDate(viewDate);
+}
+
+function setCalendarGrid(columns, chunks, mode) {
+  const grid = qs("#calendar-grid");
+  grid.className = `calendar-grid ${mode}-calendar`;
+  grid.style.gridTemplateColumns = columns;
+  grid.innerHTML = chunks.join("");
+  qsa("[data-appointment]").forEach(button => button.addEventListener("click", () => selectAppointment(button.dataset.appointment)));
+}
+
+function renderDaySchedule() {
+  const chunks = [`<div class="grid-head">Time</div>`, ...stylists.map(stylist => `<div class="grid-head">${escapeHtml(stylist)}</div>`)];
+  scheduleHours().forEach(slotStart => {
+    chunks.push(`<div class="time-cell">${formatHourLabel(slotStart)}</div>`);
+    stylists.forEach(stylist => chunks.push(renderSlotCell(viewDate, slotStart, stylist)));
+  });
+  setCalendarGrid(`76px repeat(${Math.max(1, stylists.length)}, minmax(150px, 1fr))`, chunks, "day");
+}
+
+function renderWeekSchedule() {
+  const dates = weekDates();
+  const chunks = [`<div class="grid-head">Time</div>`, ...dates.map(date => `<div class="grid-head">${formatShortDate(date)}</div>`)];
+  scheduleHours().forEach(slotStart => {
+    chunks.push(`<div class="time-cell">${formatHourLabel(slotStart)}</div>`);
+    dates.forEach(date => {
+      const stylist = firstAvailableTechnician(date, slotStart) || stylists[0] || "";
+      const matches = appointments.filter(item => item.date === date && Number(item.start.split(":")[0]) === Number(slotStart.split(":")[0]));
+      const blocks = timeOffBlocks.filter(block => block.date === date && minutesFromTime(slotStart) < minutesFromTime(block.end) && minutesFromTime(slotStart) + 60 > minutesFromTime(block.start));
       chunks.push(`
-        <div class="calendar-cell ${availabilityConflict ? "blocked-slot" : ""}">
-          ${availabilityConflict ? renderAvailabilityBlock(availabilityConflict) : ""}
+        <div class="calendar-cell week-cell ${date === viewDate ? "current-date-cell" : ""}" data-slot-date="${date}" data-slot-start="${slotStart}" data-slot-stylist="${escapeHtml(stylist)}" tabindex="0" role="button" aria-label="Create job on ${formatShortDate(date)} at ${formatHourLabel(slotStart)}">
           ${matches.map(renderBookingCard).join("")}
+          ${blocks.map(block => renderAvailabilityBlock({ type: "time-off", message: `${block.employee} ${formatHourLabel(block.start)}-${formatHourLabel(block.end)}: ${block.reason || "unavailable"}` })).join("")}
+          <span class="slot-button" aria-hidden="true"><span>+</span> Book ${formatHourLabel(slotStart)}</span>
         </div>
       `);
     });
   });
+  setCalendarGrid("76px repeat(7, minmax(170px, 1fr))", chunks, "week");
+}
 
-  qs("#calendar-grid").innerHTML = chunks.join("");
-  qsa("[data-appointment]").forEach(button => button.addEventListener("click", () => selectAppointment(button.dataset.appointment)));
+function renderTeamSchedule() {
+  const dates = weekDates();
+  const chunks = [`<div class="grid-head">Tech</div>`, ...dates.map(date => `<div class="grid-head">${formatShortDate(date)}</div>`)];
+  stylists.forEach(stylist => {
+    chunks.push(`<div class="time-cell team-name">${escapeHtml(stylist)}</div>`);
+    dates.forEach(date => {
+      const start = firstBookableStart(date, stylist) || "09:00";
+      const techAppointments = appointments.filter(item => item.date === date && item.stylist === stylist);
+      const blocks = timeOffBlocks.filter(block => block.date === date && block.employee === stylist);
+      const availabilityConflict = findAvailabilityConflict({ id: "team-preview", date, start, duration: 60, stylist });
+      chunks.push(`
+        <div class="calendar-cell team-cell ${availabilityConflict ? "blocked-slot" : ""} ${date === viewDate ? "current-date-cell" : ""}" data-slot-date="${date}" data-slot-start="${start}" data-slot-stylist="${escapeHtml(stylist)}" tabindex="0" role="button" aria-label="Create job with ${stylist} on ${formatShortDate(date)}">
+          ${techAppointments.length ? techAppointments.map(renderBookingCard).join("") : `<p class="subline">No jobs</p>`}
+          ${blocks.map(block => renderAvailabilityBlock({ type: "time-off", message: `${formatHourLabel(block.start)}-${formatHourLabel(block.end)}: ${block.reason || "unavailable"}` })).join("")}
+          <span class="slot-button" aria-hidden="true"><span>+</span> Book first open</span>
+        </div>
+      `);
+    });
+  });
+  setCalendarGrid("120px repeat(7, minmax(170px, 1fr))", chunks, "team");
+}
+
+function renderSlotCell(date, slotStart, stylist) {
+  const draft = { id: "slot-preview", date, start: slotStart, duration: 60, stylist };
+  const matches = appointments.filter(item => item.date === date && item.stylist === stylist && appointmentsOverlap(draft, item));
+  const availabilityConflict = findAvailabilityConflict(draft);
+  return `
+    <div class="calendar-cell ${availabilityConflict ? "blocked-slot" : ""} ${pendingSlot?.date === date && pendingSlot?.start === slotStart && pendingSlot?.stylist === stylist ? "slot-selected" : ""}" data-slot-date="${date}" data-slot-start="${slotStart}" data-slot-stylist="${escapeHtml(stylist)}" tabindex="0" role="button" aria-label="Create job with ${stylist} at ${formatHourLabel(slotStart)} on ${formatShortDate(date)}">
+      ${matches.map(renderBookingCard).join("")}
+      ${availabilityConflict ? renderAvailabilityBlock(availabilityConflict) : ""}
+      <span class="slot-button" aria-hidden="true"><span>+</span> Book ${formatHourLabel(slotStart)}</span>
+    </div>
+  `;
+}
+
+function firstAvailableTechnician(date, start) {
+  return stylists.find(stylist => {
+    const draft = { id: "slot-preview", date, start, duration: 60, stylist };
+    return !findAvailabilityConflict(draft) && !findBookingConflict(draft);
+  });
+}
+
+function firstBookableStart(date, stylist) {
+  return scheduleHours().find(start => {
+    const draft = { id: "slot-preview", date, start, duration: 60, stylist };
+    return !findAvailabilityConflict(draft) && !findBookingConflict(draft);
+  });
 }
 
 function renderBookingCard(appointment) {
@@ -638,6 +773,7 @@ function renderBookingCard(appointment) {
 
 function selectAppointment(id) {
   selectedId = id;
+  pendingSlot = null;
   const appointment = selectedAppointment();
   if (!appointment) return;
   renderSchedule();
@@ -691,6 +827,77 @@ function clearForm() {
   hideConflict();
 }
 
+function selectSlot({ date, start, stylist }) {
+  if (!stylist) return showToast("Add an active technician before booking this slot.");
+  const draft = {
+    id: "slot-preview",
+    date,
+    start,
+    stylist,
+    duration: Number(qs("#duration-input")?.value || 60)
+  };
+  const conflict = findBookingConflict(draft);
+  if (conflict) {
+    selectAppointment(conflict.id);
+    showToast(conflictMessage(draft, conflict));
+    return;
+  }
+  const availabilityConflict = findAvailabilityConflict(draft);
+  if (availabilityConflict) {
+    showToast(availabilityConflict.message);
+    return;
+  }
+
+  selectedId = null;
+  pendingSlot = { date, start, stylist };
+  viewDate = date;
+  clearForm();
+  qs("#form-heading").textContent = `New job with ${stylist}`;
+  qs("#stylist-input").value = stylist;
+  qs("#date-input").value = date;
+  qs("#start-input").value = start;
+  qs("#status-input").value = "Booked";
+  renderSchedule();
+  renderSelected();
+  qs("#client-input").focus();
+  qs(".booking-panel").scrollIntoView({ behavior: "smooth", block: "start" });
+  showToast(`${stylist} selected for ${formatHourLabel(start)}.`);
+}
+
+function setCalendarMode(mode) {
+  calendarMode = mode;
+  pendingSlot = null;
+  renderSchedule();
+}
+
+function handleCalendarClick(event) {
+  const appointmentButton = event.target.closest("[data-appointment]");
+  if (appointmentButton) {
+    selectAppointment(appointmentButton.dataset.appointment);
+    return;
+  }
+
+  const cell = event.target.closest(".calendar-cell[data-slot-date]");
+  if (!cell) return;
+  selectSlot({
+    date: cell.dataset.slotDate,
+    start: cell.dataset.slotStart,
+    stylist: cell.dataset.slotStylist
+  });
+}
+
+function handleCalendarKeydown(event) {
+  if (event.key !== "Enter" && event.key !== " ") return;
+  const cell = event.target.closest(".calendar-cell[data-slot-date]");
+  if (!cell) return;
+  event.preventDefault();
+  selectSlot({
+    date: cell.dataset.slotDate,
+    start: cell.dataset.slotStart,
+    stylist: cell.dataset.slotStylist
+  });
+}
+
 function deleteSelectedAppointment() {
   const appointment = selectedAppointment();
   if (!appointment) return showToast("Select a job first.");
@@ -708,8 +915,10 @@ function deleteSelectedAppointment() {
 function renderSelected() {
   const appointment = appointments.find(item => item.id === selectedId);
   if (!appointment) {
-    qs("#selected-title").textContent = "No job selected";
-    qs("#selected-detail").textContent = "Select a job to send it to Google, Outlook, or export an .ics file.";
+    qs("#selected-title").textContent = pendingSlot ? "Open slot selected" : "No job selected";
+    qs("#selected-detail").textContent = pendingSlot
+      ? `${pendingSlot.stylist} is ready for a new job on ${pendingSlot.date} at ${formatHourLabel(pendingSlot.start)}. Add customer details and save.`
+      : "Select a job to send it to Google, Outlook, or export an .ics file.";
     renderPaymentPanel();
     return;
   }
@@ -903,10 +1112,21 @@ function renderTechnicianOptions(selected = qs("#stylist-input")?.value) {
 
 function renderEmployees() {
   const activeCount = technicians.filter(tech => tech.status !== "Inactive").length;
+  const dates = weekDates();
+  const weeklyJobs = appointments.filter(item => dates.includes(item.date)).length;
+  const openHourCount = stylists.reduce((sum, stylist) => {
+    return sum + dates.reduce((daySum, date) => {
+      return daySum + scheduleHours().filter(start => {
+        const draft = { id: "capacity-preview", date, start, duration: 60, stylist };
+        return !findAvailabilityConflict(draft) && !findBookingConflict(draft);
+      }).length;
+    }, 0);
+  }, 0);
   qs("#employee-summary").innerHTML = `
     <article><span>Active techs</span><strong>${activeCount}</strong></article>
+    <article><span>Weekly jobs</span><strong>${weeklyJobs}</strong></article>
+    <article><span>Open hours</span><strong>${openHourCount}</strong></article>
     <article><span>Blocked slots</span><strong>${timeOffBlocks.length}</strong></article>
-    <article><span>Coverage</span><strong>${stylists.length ? `${stylists.length} columns` : "None"}</strong></article>
   `;
 
   qs("#employee-list").innerHTML = technicians.map(tech => `
@@ -1184,6 +1404,7 @@ function handleBookingSubmit(event) {
 
   selectedId = id;
   viewDate = appointment.date;
+  pendingSlot = null;
   saveAppointments();
   renderAll();
   renderClientSuggestions();
@@ -1610,7 +1831,10 @@ function switchView(view) {
 }
 
 function renderAll() {
-  if (selectedId && !appointments.some(item => item.id === selectedId && item.date === viewDate)) {
+  if (selectedId && !appointments.some(item => item.id === selectedId)) {
+    selectedId = null;
+  }
+  if (calendarMode === "day" && selectedId && !appointments.some(item => item.id === selectedId && item.date === viewDate)) {
     selectedId = appointments.find(item => item.date === viewDate)?.id || null;
   }
   renderSchedule();
@@ -1635,8 +1859,11 @@ function init() {
   renderServiceOptions();
   renderTechnicianOptions();
   qsa("[data-view]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.view)));
+  qsa("[data-calendar-mode]").forEach(button => button.addEventListener("click", () => setCalendarMode(button.dataset.calendarMode)));
   qsa("[data-view-jump]").forEach(button => button.addEventListener("click", () => switchView(button.dataset.viewJump)));
   qsa("[data-demo-action]").forEach(button => button.addEventListener("click", () => showToast(`${button.dataset.demoAction} queued in demo mode.`)));
+  qs("#calendar-grid").addEventListener("click", handleCalendarClick);
+  qs("#calendar-grid").addEventListener("keydown", handleCalendarKeydown);
   qs("#booking-form").addEventListener("submit", handleBookingSubmit);
   qs("#employee-form").addEventListener("submit", handleEmployeeSubmit);
   qs("#clear-employee-form").addEventListener("click", clearEmployeeForm);
@@ -1650,28 +1877,38 @@ function init() {
     qs(selector).addEventListener("change", () => renderProposalPreview());
   });
   qs("#service-input").addEventListener("change", () => applyServiceDefaults(true));
-  qs("#clear-form").addEventListener("click", clearForm);
+  qs("#clear-form").addEventListener("click", () => {
+    pendingSlot = null;
+    clearForm();
+    renderSchedule();
+    renderSelected();
+  });
   qs("#delete-appointment").addEventListener("click", deleteSelectedAppointment);
   qs("#schedule-date-picker").addEventListener("change", event => {
     viewDate = event.target.value || todayIso();
+    pendingSlot = null;
     selectedId = appointments.find(item => item.date === viewDate)?.id || null;
     renderAll();
     clearForm();
   });
   qs("#previous-day").addEventListener("click", () => {
-    viewDate = shiftDate(viewDate, -1);
+    viewDate = shiftDate(viewDate, calendarMode === "day" ? -1 : -7);
+    pendingSlot = null;
     selectedId = appointments.find(item => item.date === viewDate)?.id || null;
     renderAll();
     clearForm();
   });
   qs("#today-button").addEventListener("click", () => {
     viewDate = todayIso();
+    pendingSlot = null;
+    calendarMode = "day";
     selectedId = appointments.find(item => item.date === viewDate)?.id || null;
     renderAll();
     clearForm();
   });
   qs("#next-day").addEventListener("click", () => {
-    viewDate = shiftDate(viewDate, 1);
+    viewDate = shiftDate(viewDate, calendarMode === "day" ? 1 : 7);
+    pendingSlot = null;
     selectedId = appointments.find(item => item.date === viewDate)?.id || null;
     renderAll();
     clearForm();
@@ -1706,6 +1943,8 @@ function init() {
     saveTimeOffBlocks();
     renderTechnicianOptions();
     viewDate = todayIso();
+    calendarMode = "day";
+    pendingSlot = null;
     selectedId = appointments[0].id;
     localStorage.removeItem(importedKey);
     saveAppointments();
