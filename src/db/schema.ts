@@ -73,6 +73,36 @@ export const contacts = sqliteTable('contacts', {
   createdAt: text('created_at').notNull(),
 });
 
+export const lawnCareLeads = sqliteTable('lawn_care_leads', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  source: text('source').notNull().default('manual'),
+  externalId: text('external_id'),
+  customerName: text('customer_name').notNull(),
+  email: text('email'),
+  phone: text('phone'),
+  address: text('address'),
+  city: text('city'),
+  state: text('state'),
+  zip: text('zip'),
+  serviceType: text('service_type').notNull(),
+  propertyType: text('property_type'),
+  recurring: integer('recurring', { mode: 'boolean' }).notNull().default(false),
+  urgency: text('urgency').notNull().default('normal'),
+  budgetCents: integer('budget_cents'),
+  preferredDate: text('preferred_date'),
+  preferredTimeWindow: text('preferred_time_window'),
+  message: text('message').notNull(),
+  normalizedSummary: text('normalized_summary').notNull(),
+  score: integer('score').notNull(),
+  scoreLabel: text('score_label').notNull(),
+  scoreReasons: text('score_reasons').notNull(),
+  nextBestAction: text('next_best_action').notNull(),
+  status: text('status').notNull().default('new'),
+  rawPayload: text('raw_payload').notNull(),
+  createdAt: text('created_at').notNull(),
+  updatedAt: text('updated_at').notNull(),
+});
+
 export const outlookIntegrations = sqliteTable('outlook_integrations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),

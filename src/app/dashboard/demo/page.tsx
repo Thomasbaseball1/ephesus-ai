@@ -1,6 +1,11 @@
 import Link from 'next/link';
+import { desc } from 'drizzle-orm';
 import { DashboardPageHeader } from '@/components/DashboardPageHeader';
 import { DemoExperience } from '@/components/DemoExperience';
+import { LawnCareLeadConsole } from '@/components/LawnCareLeadConsole';
+import { db } from '@/db';
+import { lawnCareLeads } from '@/db/schema';
+import { ensureLawnCareLeadTable } from '@/lib/lawn-care-leads';
 import {
   ArrowRight,
   BellRing,
@@ -9,7 +14,6 @@ import {
   MonitorPlay,
   Route,
   ShieldCheck,
-  Sparkles,
   Target,
   Wrench,
 } from 'lucide-react';
@@ -70,7 +74,14 @@ const minimumCredentials = [
   },
 ];
 
-export default function DashboardDemoPage() {
+export default async function DashboardDemoPage() {
+  await ensureLawnCareLeadTable();
+  const latestLawnCareLeads = await db
+    .select()
+    .from(lawnCareLeads)
+    .orderBy(desc(lawnCareLeads.createdAt))
+    .limit(20);
+
   return (
     <div className="space-y-6">
       <DashboardPageHeader
@@ -184,18 +195,8 @@ export default function DashboardDemoPage() {
               })}
             </div>
 
-            <div className="mt-5 rounded-2xl border border-[#77ead6]/15 bg-[#77ead6]/[0.06] p-4">
-              <div className="flex items-start gap-3">
-                <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-[#77ead6]" />
-                <div>
-                  <h3 className="text-base font-semibold text-white">What this would show in the demo</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-300">
-                    A ranked lawn care lead queue with score reasons like route fit, service value, urgency, property type,
-                    recurring potential, and whether the request falls inside the service area. From there, the owner could
-                    click to book it, send a quote, assign a crew, or start phone/email follow-up.
-                  </p>
-                </div>
-              </div>
+            <div className="mt-5">
+              <LawnCareLeadConsole leads={latestLawnCareLeads} />
             </div>
           </div>
 
