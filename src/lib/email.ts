@@ -1,11 +1,17 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const NOTIFICATION_EMAILS = [
   'tmore.haller@yahoo.com',
   'deenwest@gmail.com'
 ];
+
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY is not configured');
+  }
+  return new Resend(apiKey);
+}
 
 interface BookingNotificationData {
   name: string;
@@ -125,6 +131,7 @@ export async function sendBookingNotification(booking: BookingNotificationData) 
   `;
 
   try {
+    const resend = getResendClient();
     const results = await Promise.allSettled(
       NOTIFICATION_EMAILS.map(email =>
         resend.emails.send({
@@ -202,6 +209,7 @@ export async function sendIntakeNotification(companyName: string, contactEmail: 
   `;
 
   try {
+    const resend = getResendClient();
     const results = await Promise.allSettled(
       NOTIFICATION_EMAILS.map(email =>
         resend.emails.send({
@@ -303,6 +311,7 @@ export async function sendContactNotification(contact: ContactNotificationData) 
   `;
 
   try {
+    const resend = getResendClient();
     const results = await Promise.allSettled(
       NOTIFICATION_EMAILS.map(email =>
         resend.emails.send({

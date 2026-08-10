@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const SUPPORT_EMAIL = process.env.RESEND_TO_EMAIL || 'support@ephesusai.com';
+
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY is not configured');
+  }
+  return new Resend(apiKey);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +19,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Subject and message are required.' }, { status: 400 });
     }
 
-    await resend.emails.send({
+    await getResendClient().emails.send({
       from: process.env.RESEND_FROM_EMAIL || 'noreply@ephesusai.com',
       to: SUPPORT_EMAIL,
       replyTo: userEmail,

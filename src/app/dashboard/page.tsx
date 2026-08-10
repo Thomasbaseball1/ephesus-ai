@@ -22,6 +22,7 @@ import {
   Phone,
   ShieldCheck,
   Sparkles,
+  Target,
   Zap,
 } from 'lucide-react';
 
@@ -172,6 +173,17 @@ export default async function DashboardPage({
             <h3>Salon Biz CRM</h3>
             <p>Open the live CRM demo with bookings, clients, email, reports, and Google Calendar sync.</p>
             <span className="dashboard-status-card__cta">Open CRM demo <ArrowRight /></span>
+          </Link>
+
+          <Link href="/dashboard/demo#lawn-care-lead-intelligence" className="dashboard-status-card" data-tone="progress">
+            <div className="dashboard-status-card__topline">
+              <span className="dashboard-status-card__icon"><Target /></span>
+              <span className="dashboard-status-pill"><i /> Blueprint</span>
+            </div>
+            <p className="dashboard-status-card__eyebrow">Lead intelligence demo</p>
+            <h3>Lawn Care Lead Scoring</h3>
+            <p>Review the lawn care lead capture, scoring, prioritization, and action workflow from the technical deck.</p>
+            <span className="dashboard-status-card__cta">View lead module <ArrowRight /></span>
           </Link>
         </div>
       </section>

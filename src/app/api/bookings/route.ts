@@ -42,8 +42,6 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const date = searchParams.get('date');
 
-    let query = db.select().from(bookings);
-
     // Build filter conditions
     const conditions = [];
 
@@ -65,11 +63,9 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(bookings.date, date));
     }
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const results = await query.limit(limit).offset(offset);
+    const results = conditions.length > 0
+      ? await db.select().from(bookings).where(and(...conditions)).limit(limit).offset(offset)
+      : await db.select().from(bookings).limit(limit).offset(offset);
 
     return NextResponse.json(results, { status: 200 });
   } catch (error) {

@@ -1,4 +1,5 @@
 const storageKey = "dispatchboard-jobs-v1";
+const customerStorageKey = "dispatchboard-customers-v1";
 const importedKey = "dispatchboard-import-count-v1";
 const paymentsKey = "dispatchboard-payments-v1";
 const demoBridgeSeenKey = "dispatchboard-demo-bridge-seen-v1";
@@ -32,6 +33,16 @@ const seedAppointments = [
   { id: "apt-4", client: "Ortiz Property Mgmt", email: "service@ortizpm.example", service: "Leak inspection", price: 175, stylist: "Ramos", date: "2026-06-28", start: "14:30", duration: 90, status: "Booked", paymentStatus: "Unpaid", notes: "Unit 4B ceiling stain. Call property manager before entering." },
   { id: "apt-5", client: "Northline Market", email: "ops@northline.example", service: "Seasonal tune-up", price: 129, stylist: "Priya", date: "2026-06-28", start: "15:00", duration: 75, status: "Confirmed", paymentStatus: "Unpaid", notes: "Rooftop access key at front counter. Replace filters if needed." }
 ];
+
+const officeLocation = { name: "Dispatch office", lat: 40.7128, lng: -74.0060 };
+
+const knownClientLocations = {
+  "Bennett Residence": { lat: 40.7232, lng: -73.9898, address: "East Village service area" },
+  "Chen Dental Group": { lat: 40.7411, lng: -73.9897, address: "Flatiron commercial district" },
+  "Patel Duplex": { lat: 40.6782, lng: -73.9442, address: "Crown Heights route zone" },
+  "Ortiz Property Mgmt": { lat: 40.7061, lng: -74.0086, address: "Financial District property" },
+  "Northline Market": { lat: 40.759, lng: -73.9845, address: "Midtown retail route" }
+};
 
 const seedPayments = [
   { id: "pay-1", appointmentId: "apt-1", client: "Bennett Residence", amount: 149, method: "Card", note: "Diagnostic collected on site", date: "2026-06-28", createdAt: "2026-06-28T09:58:00" },
@@ -117,6 +128,7 @@ const viewTitles = {
 };
 
 let appointments = loadAppointments();
+let customers = loadCustomers();
 let payments = loadPayments();
 let technicians = loadTechnicians();
 let stylists = activeTechnicianNames();
@@ -142,6 +154,60 @@ function serviceByName(name) {
 
 function formatCurrency(amount) {
   return Number(amount || 0).toLocaleString([], { style: "currency", currency: "USD" });
+}
+
+function seededNumber(text = "") {
+  let hash = 0;
+  for (const char of text) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+  return Math.abs(hash);
+}
+
+function locationForAppointment(appointment) {
+  if (knownClientLocations[appointment.client]) return knownClientLocations[appointment.client];
+  const seed = seededNumber(`${appointment.client}-${appointment.email}`);
+  const angle = (seed % 360) * Math.PI / 180;
+  const radius = 0.018 + ((seed % 22) / 1000);
+  return {
+    lat: officeLocation.lat + Math.sin(angle) * radius,
+    lng: officeLocation.lng + Math.cos(angle) * radius,
+    address: "Generated demo service area"
+  };
+}
+
+function milesBetween(first, second) {
+  const toRad = value => value * Math.PI / 180;
+  const earthMiles = 3958.8;
+  const dLat = toRad(second.lat - first.lat);
+  const dLng = toRad(second.lng - first.lng);
+  const lat1 = toRad(first.lat);
+  const lat2 = toRad(second.lat);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return earthMiles * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function routeJobsForDate(date = viewDate) {
+  return appointments
+    .filter(item => item.date === date)
+    .map(item => ({ ...item, location: locationForAppointment(item) }))
+    .sort((a, b) => minutesFromTime(a.start) - minutesFromTime(b.start));
+}
+
+function routeMetrics(stops) {
+  let previous = officeLocation;
+  let miles = 0;
+  const legs = stops.map(stop => {
+    const legMiles = milesBetween(previous, stop.location);
+    miles += legMiles;
+    previous = stop.location;
+    return { ...stop, legMiles, driveMinutes: Math.max(4, Math.round(legMiles * 3.1)) };
+  });
+  const returnMiles = stops.length ? milesBetween(previous, officeLocation) : 0;
+  return {
+    legs,
+    miles: miles + returnMiles,
+    returnMiles,
+    driveMinutes: Math.round((miles + returnMiles) * 3.1)
+  };
 }
 
 function appointmentPayments(appointmentId) {
@@ -177,6 +243,71 @@ function loadAppointments() {
 
 function saveAppointments() {
   localStorage.setItem(storageKey, JSON.stringify(appointments));
+}
+
+function customerKey(name = "") {
+  return name.trim().toLowerCase();
+}
+
+function customerFromAppointment(appointment) {
+  return {
+    name: appointment.client || "New customer",
+    email: appointment.email || "",
+    lastService: appointment.service || "",
+    lastTechnician: appointment.stylist || "",
+    lastDate: appointment.date || todayIso(),
+    lastStart: appointment.start || "00:00",
+    notes: appointment.notes || ""
+  };
+}
+
+function customersFromAppointments(items) {
+  const records = new Map();
+  items.forEach(item => {
+    const key = customerKey(item.client);
+    if (!key) return;
+    const existing = records.get(key) || customerFromAppointment(item);
+    const existingStamp = `${existing.lastDate || ""}T${existing.lastStart || "00:00"}`;
+    const nextStamp = `${item.date || ""}T${item.start || "00:00"}`;
+    records.set(key, {
+      ...existing,
+      name: item.client,
+      email: existing.email || item.email || "",
+      lastService: nextStamp >= existingStamp ? item.service : existing.lastService,
+      lastTechnician: nextStamp >= existingStamp ? item.stylist : existing.lastTechnician,
+      lastDate: nextStamp >= existingStamp ? item.date : existing.lastDate,
+      lastStart: nextStamp >= existingStamp ? item.start : existing.lastStart,
+      notes: item.notes || existing.notes || ""
+    });
+  });
+  return [...records.values()];
+}
+
+function loadCustomers() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(customerStorageKey));
+    return Array.isArray(saved) && saved.length ? saved : customersFromAppointments(appointments);
+  } catch {
+    return customersFromAppointments(appointments);
+  }
+}
+
+function saveCustomers() {
+  localStorage.setItem(customerStorageKey, JSON.stringify(customers));
+}
+
+function upsertCustomer(customer) {
+  const key = customerKey(customer.name);
+  if (!key) return;
+  const index = customers.findIndex(item => customerKey(item.name) === key);
+  const next = index >= 0 ? { ...customers[index], ...customer, email: customer.email || customers[index].email || "" } : customer;
+  if (index >= 0) customers[index] = next;
+  else customers.push(next);
+  saveCustomers();
+}
+
+function syncCustomersFromAppointments() {
+  customersFromAppointments(appointments).forEach(upsertCustomer);
 }
 
 function loadPayments() {
@@ -373,6 +504,7 @@ async function syncDemoCrmBookings(showToastOnImport = true) {
       const appointment = demoBookingToAppointment(row);
       if (!existingIds.has(appointment.id)) {
         appointments.push(appointment);
+        upsertCustomer(customerFromAppointment(appointment));
         imported.push(appointment);
         existingIds.add(appointment.id);
       }
@@ -386,6 +518,7 @@ async function syncDemoCrmBookings(showToastOnImport = true) {
       selectedId = newest.id;
       viewDate = newest.date;
       saveAppointments();
+      syncCustomersFromAppointments();
       renderAll();
       renderClientSuggestions();
       if (showToastOnImport) {
@@ -731,6 +864,83 @@ function renderTeamSchedule() {
   setCalendarGrid("120px repeat(7, minmax(170px, 1fr))", chunks, "team");
 }
 
+function renderRouteMap() {
+  const stops = routeJobsForDate(viewDate);
+  const { legs, miles, returnMiles, driveMinutes } = routeMetrics(stops);
+  qs("#route-title").textContent = `${formatShortDate(viewDate)} route plan`;
+  qs("#route-summary").textContent = stops.length
+    ? `${stops.length} stops · ${miles.toFixed(1)} mi · about ${driveMinutes} min drive`
+    : "No jobs on this date";
+
+  if (!stops.length) {
+    qs("#route-map").innerHTML = `
+      <div class="empty-route">
+        <strong>No route to optimize</strong>
+        <span>Add jobs to this day and they will appear here by stop order.</span>
+      </div>
+    `;
+    qs("#route-list").innerHTML = `<p class="subline">The route planner uses the selected day's scheduled jobs.</p>`;
+    return;
+  }
+
+  const allPoints = [officeLocation, ...legs.map(item => item.location)];
+  const latMin = Math.min(...allPoints.map(point => point.lat));
+  const latMax = Math.max(...allPoints.map(point => point.lat));
+  const lngMin = Math.min(...allPoints.map(point => point.lng));
+  const lngMax = Math.max(...allPoints.map(point => point.lng));
+  const pad = 34;
+  const width = 640;
+  const height = 360;
+  const project = point => ({
+    x: pad + ((point.lng - lngMin) / Math.max(lngMax - lngMin, 0.001)) * (width - pad * 2),
+    y: height - pad - ((point.lat - latMin) / Math.max(latMax - latMin, 0.001)) * (height - pad * 2)
+  });
+  const routePoints = [officeLocation, ...legs.map(item => item.location), officeLocation].map(project);
+  const polyline = routePoints.map(point => `${point.x.toFixed(1)},${point.y.toFixed(1)}`).join(" ");
+  const officePoint = project(officeLocation);
+
+  qs("#route-map").innerHTML = `
+    <svg viewBox="0 0 ${width} ${height}" aria-hidden="true">
+      <defs>
+        <pattern id="map-grid" width="42" height="42" patternUnits="userSpaceOnUse">
+          <path d="M 42 0 L 0 0 0 42" fill="none" stroke="rgba(31,95,143,.12)" stroke-width="1" />
+        </pattern>
+      </defs>
+      <rect width="${width}" height="${height}" rx="8" fill="#eef6f2" />
+      <rect width="${width}" height="${height}" fill="url(#map-grid)" />
+      <path d="M80 320 C190 250 210 120 350 150 S510 210 580 70" fill="none" stroke="rgba(31,111,101,.18)" stroke-width="18" stroke-linecap="round" />
+      <path d="M${polyline}" fill="none" stroke="#1f6f65" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="${officePoint.x}" cy="${officePoint.y}" r="11" fill="#14283b" />
+      <text x="${officePoint.x + 14}" y="${officePoint.y + 5}" class="map-label">Office</text>
+      ${legs.map((stop, index) => {
+        const point = project(stop.location);
+        return `
+          <g class="${stop.id === selectedId ? "active-map-stop" : ""}">
+            <circle cx="${point.x}" cy="${point.y}" r="15" fill="${stop.id === selectedId ? "#f3b53f" : "#1f5f8f"}" />
+            <text x="${point.x}" y="${point.y + 5}" text-anchor="middle" class="pin-number">${index + 1}</text>
+            <text x="${Math.min(point.x + 18, width - 170)}" y="${Math.max(point.y - 16, 24)}" class="map-label">${escapeHtml(stop.client)}</text>
+          </g>
+        `;
+      }).join("")}
+    </svg>
+  `;
+
+  qs("#route-list").innerHTML = `
+    <div class="route-total">
+      <strong>${miles.toFixed(1)} mi</strong>
+      <span>Includes ${returnMiles.toFixed(1)} mi back to office</span>
+    </div>
+    ${legs.map((stop, index) => `
+      <button class="route-stop ${stop.id === selectedId ? "active" : ""}" type="button" data-route-stop="${stop.id}">
+        <strong>${index + 1}. ${formatHourLabel(stop.start)} · ${escapeHtml(stop.client)}</strong>
+        <span>${escapeHtml(stop.service)} with ${escapeHtml(stop.stylist)}</span>
+        <span>${stop.legMiles.toFixed(1)} mi from previous · about ${stop.driveMinutes} min drive · ${escapeHtml(stop.location.address)}</span>
+      </button>
+    `).join("")}
+  `;
+  qsa("[data-route-stop]").forEach(button => button.addEventListener("click", () => selectAppointment(button.dataset.routeStop)));
+}
+
 function renderSlotCell(date, slotStart, stylist) {
   const draft = { id: "slot-preview", date, start: slotStart, duration: 60, stylist };
   const matches = appointments.filter(item => item.date === date && item.stylist === stylist && appointmentsOverlap(draft, item));
@@ -777,6 +987,7 @@ function selectAppointment(id) {
   const appointment = selectedAppointment();
   if (!appointment) return;
   renderSchedule();
+  renderRouteMap();
   renderSelected();
 }
 
@@ -1063,12 +1274,26 @@ function hideConflict() {
 
 function getClientDatabase() {
   const clients = new Map();
+  customers.forEach(customer => {
+    const key = customerKey(customer.name);
+    if (!key) return;
+    clients.set(key, {
+      name: customer.name,
+      email: customer.email || "",
+      lastService: customer.lastService || "",
+      lastTechnician: customer.lastTechnician || "",
+      appointments: []
+    });
+  });
+
   appointments.forEach(item => {
-    const key = item.client.trim().toLowerCase();
+    const key = customerKey(item.client);
     if (!key) return;
     const existing = clients.get(key) || {
       name: item.client.trim(),
       email: item.email || "",
+      lastService: item.service || "",
+      lastTechnician: item.stylist || "",
       appointments: []
     };
     if (item.email && !existing.email) existing.email = item.email;
@@ -1325,7 +1550,7 @@ function renderClientPicker(term) {
       ${client === matches[0] ? `<div class="client-picker-label">${term.trim() ? "Matching customers" : "Existing customers"}</div>` : ""}
       <button class="client-suggestion" type="button" data-client-choice="${client.name}">
         <strong>${client.name}</strong>
-        <span>${client.email || "No email"} - ${client.appointments.length} job${client.appointments.length === 1 ? "" : "s"} - last ${last.service}</span>
+        <span>${client.email || "No email"} - ${client.appointments.length} job${client.appointments.length === 1 ? "" : "s"} - last ${last?.service || client.lastService || "customer record"}</span>
       </button>
     `;
   }).join("");
@@ -1347,22 +1572,24 @@ function applyClientMatch(force = false, clientName = qs("#client-input").value)
 
   const last = client.appointments[0];
   if (client.email && (force || !qs("#email-input").value.trim())) qs("#email-input").value = client.email;
-  if (last.service && (force || !qs("#service-input").value.trim())) {
+  if (last?.service && (force || !qs("#service-input").value.trim())) {
     qs("#service-input").value = serviceByName(last.service)?.name || "Custom work order";
     applyServiceDefaults(true);
   }
-  if (last.stylist && (force || qs("#stylist-input").value === stylists[0])) qs("#stylist-input").value = last.stylist;
+  if (last?.stylist && (force || qs("#stylist-input").value === stylists[0])) qs("#stylist-input").value = last.stylist;
 
-  const historyNote = `Returning customer. Last job: ${last.date} ${last.start} for ${last.service} with ${last.stylist}.`;
-  if (force || !qs("#notes-input").value.trim()) {
-    qs("#notes-input").value = last.notes ? `${historyNote}\nPrevious notes: ${last.notes}` : historyNote;
+  const historyNote = last
+    ? `Returning customer. Last job: ${last.date} ${last.start} for ${last.service} with ${last.stylist}.`
+    : `Saved customer record. Last service: ${client.lastService || "not recorded"}.`;
+  if ((last || client.lastService) && (force || !qs("#notes-input").value.trim())) {
+    qs("#notes-input").value = last?.notes ? `${historyNote}\nPrevious notes: ${last.notes}` : historyNote;
   }
 
   matchBox.hidden = false;
   matchBox.innerHTML = `
     <strong>Matched existing customer: ${client.name}</strong>
     <span>${client.email || "No email on file"} - ${client.appointments.length} job${client.appointments.length === 1 ? "" : "s"} on record</span>
-    <span>Last job: ${last.service} with ${last.stylist} on ${last.date}</span>
+    <span>${last ? `Last job: ${last.service} with ${last.stylist} on ${last.date}` : `Saved CRM profile${client.lastService ? ` - ${client.lastService}` : ""}`}</span>
   `;
 }
 
@@ -1402,6 +1629,7 @@ function handleBookingSubmit(event) {
   if (existingIndex >= 0) appointments[existingIndex] = appointment;
   else appointments.push(appointment);
 
+  upsertCustomer(customerFromAppointment(appointment));
   selectedId = id;
   viewDate = appointment.date;
   pendingSlot = null;
@@ -1484,6 +1712,7 @@ function handleIcsImport(file) {
     const imported = readIcs(String(reader.result || ""));
     if (!imported.length) return showToast("No events found in that .ics file.");
     appointments = [...appointments, ...imported];
+    imported.forEach(item => upsertCustomer(customerFromAppointment(item)));
     selectedId = imported[0].id;
     viewDate = imported[0].date;
     localStorage.setItem(importedKey, String(Number(localStorage.getItem(importedKey) || 0) + imported.length));
@@ -1497,11 +1726,11 @@ function handleIcsImport(file) {
 }
 
 function renderClients() {
-  const byClient = [...new Map(appointments.map(item => [item.client, item])).values()];
+  const byClient = getClientDatabase();
   qs("#client-list").innerHTML = byClient.map((client, index) => `
-    <button class="client-row ${index === 0 ? "active" : ""}" data-client="${client.client}">
-      <strong>${client.client}</strong>
-      <span class="subline">${client.email || "No email"} - next ${client.date}</span>
+    <button class="client-row ${index === 0 ? "active" : ""}" data-client="${client.name}">
+      <strong>${client.name}</strong>
+      <span class="subline">${client.email || "No email"} - ${client.appointments[0] ? `next ${client.appointments[0].date}` : "saved CRM profile"}</span>
     </button>
   `).join("");
 
@@ -1510,7 +1739,7 @@ function renderClients() {
     const clientAppointments = appointments.filter(item => item.client === button.dataset.client);
     renderClientProfile(button.dataset.client, clientAppointments);
   }));
-  if (byClient[0]) renderClientProfile(byClient[0].client, appointments.filter(item => item.client === byClient[0].client));
+  if (byClient[0]) renderClientProfile(byClient[0].name, appointments.filter(item => item.client === byClient[0].name));
 }
 
 function renderClientProfile(clientName, items) {
@@ -1936,6 +2165,7 @@ function init() {
   });
   qs("#reset-demo").addEventListener("click", () => {
     appointments = seedAppointments.map(item => ({ ...item, date: todayIso() }));
+    customers = customersFromAppointments(appointments);
     payments = seedPayments.map(item => ({ ...item, date: todayIso(), createdAt: `${todayIso()}T${(item.createdAt || "09:00:00").slice(11, 19)}` }));
     technicians = seedTechnicians.map(item => ({ ...item }));
     timeOffBlocks = seedTimeOffBlocks.map(item => ({ ...item, date: todayIso() }));
@@ -1948,6 +2178,7 @@ function init() {
     selectedId = appointments[0].id;
     localStorage.removeItem(importedKey);
     saveAppointments();
+    saveCustomers();
     savePayments();
     renderAll();
     renderClientSuggestions();

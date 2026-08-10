@@ -1,9 +1,15 @@
 import OpenAI from "openai";
 import { NextRequest } from "next/server";
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 export async function POST(req: NextRequest) {
+  if (!process.env.OPENAI_API_KEY) {
+    return new Response(JSON.stringify({ error: "OPENAI_API_KEY is not configured" }), {
+      status: 503,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   const { businessDescription } = await req.json();
 
   const systemPrompt = `You are simulating a realistic inbound inquiry conversation for a business using Ephesus AI — an AI-powered inbound communications assistant that handles calls, emails, and website chats.
