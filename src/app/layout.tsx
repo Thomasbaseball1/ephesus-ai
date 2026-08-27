@@ -101,12 +101,6 @@ export default function RootLayout({
         {children}
         <Toaster />
         <VapiWrapper />
-        {/* Calendly popup widget */}
-        <link rel="stylesheet" href="https://assets.calendly.com/assets/external/widget.css" />
-        <Script
-          src="https://assets.calendly.com/assets/external/widget.js"
-          strategy="afterInteractive"
-        />
         <VisualEditsMessenger />
       </body>
     </html>

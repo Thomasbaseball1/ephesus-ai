@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { bookings } from '@/db/schema';
-import { eq, like, or, and } from 'drizzle-orm';
+import { eq, like, or, and, ne } from 'drizzle-orm';
 import { sendBookingNotification } from '@/lib/email';
-import { createGoogleCalendarEvent } from '@/lib/google-calendar';
+import { createGoogleCalendarEvent, isGoogleCalendarConfigured, isGoogleCalendarSlotAvailable } from '@/lib/google-calendar';
 
 export async function GET(request: NextRequest) {
   try {
@@ -123,6 +123,45 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
     };
 
+    const existingBookings = await db
+      .select({ id: bookings.id })
+      .from(bookings)
+      .where(and(
+        eq(bookings.date, sanitizedData.date),
+        eq(bookings.timeSlot, sanitizedData.timeSlot),
+        ne(bookings.status, 'cancelled')
+      ))
+      .limit(1);
+
+    if (existingBookings.length > 0) {
+      return NextResponse.json(
+        { error: 'That consultation time is already booked. Please choose another slot.', code: 'TIME_SLOT_UNAVAILABLE' },
+        { status: 409 }
+      );
+    }
+
+    const googleCalendarConfigured = isGoogleCalendarConfigured();
+    const googleSlotAvailable = await isGoogleCalendarSlotAvailable(sanitizedData.date, sanitizedData.timeSlot);
+
+    if (!googleSlotAvailable) {
+      return NextResponse.json(
+        { error: 'That time is already busy on Google Calendar. Please choose another slot.', code: 'GOOGLE_CALENDAR_BUSY' },
+        { status: 409 }
+      );
+    }
+
+    let googleCalendarEventId: string | null = null;
+    if (googleCalendarConfigured) {
+      googleCalendarEventId = await createGoogleCalendarEvent({
+        name: sanitizedData.name,
+        email: sanitizedData.email,
+        company: sanitizedData.company,
+        date: sanitizedData.date,
+        timeSlot: sanitizedData.timeSlot,
+        notes: sanitizedData.notes,
+      });
+    }
+
     // Insert booking
     const newBooking = await db
       .insert(bookings)
@@ -134,19 +173,17 @@ export async function POST(request: NextRequest) {
       console.error('Failed to send booking notification email:', error);
     });
 
-    // Create Google Calendar event (non-blocking)
-    createGoogleCalendarEvent({
-      name: sanitizedData.name,
-      email: sanitizedData.email,
-      company: sanitizedData.company,
-      date: sanitizedData.date,
-      timeSlot: sanitizedData.timeSlot,
-      notes: sanitizedData.notes,
-    }).catch(error => {
-      console.error('Failed to create Google Calendar event:', error);
-    });
-
-    return NextResponse.json(newBooking[0], { status: 201 });
+    return NextResponse.json(
+      {
+        ...newBooking[0],
+        googleCalendar: {
+          configured: googleCalendarConfigured,
+          eventCreated: Boolean(googleCalendarEventId),
+          eventId: googleCalendarEventId,
+        },
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('POST error:', error);
     return NextResponse.json(

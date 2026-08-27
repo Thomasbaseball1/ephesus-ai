@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Calendar } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Calendar, CheckCircle2, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -35,17 +35,62 @@ interface BookingDialogProps {
   children: React.ReactNode;
 }
 
+type AvailabilityResponse = {
+  timeSlots: { slot: string; available: boolean }[];
+  googleCalendarConfigured: boolean;
+};
+
 export default function BookingDialog({ children }: BookingDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<Record<string, boolean>>({});
+  const [googleCalendarConfigured, setGoogleCalendarConfigured] = useState<boolean | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     company: "",
     notes: "",
   });
+
+  useEffect(() => {
+    if (!selectedDate) {
+      setAvailableSlots({});
+      setGoogleCalendarConfigured(null);
+      return;
+    }
+
+    let cancelled = false;
+    const date = format(selectedDate, "yyyy-MM-dd");
+    setIsLoadingAvailability(true);
+    setSelectedTimeSlot("");
+
+    fetch(`/api/bookings/availability?date=${encodeURIComponent(date)}`)
+      .then(async (response) => {
+        if (!response.ok) throw new Error("Unable to load availability");
+        return response.json() as Promise<AvailabilityResponse>;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setAvailableSlots(Object.fromEntries(data.timeSlots.map((item) => [item.slot, item.available])));
+        setGoogleCalendarConfigured(data.googleCalendarConfigured);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setAvailableSlots(Object.fromEntries(TIME_SLOTS.map((slot) => [slot, true])));
+        setGoogleCalendarConfigured(null);
+        toast.error("Availability could not be loaded. Please try again.");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingAvailability(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +129,12 @@ export default function BookingDialog({ children }: BookingDialogProps) {
         throw new Error(error.error || "Failed to book consultation");
       }
 
-      toast.success("Consultation booked successfully! We'll contact you soon.");
+      const booking = await response.json();
+      const calendarMessage = booking.googleCalendar?.eventCreated
+        ? " Google Calendar invite sent."
+        : " We'll contact you soon.";
+
+      toast.success(`Consultation booked successfully!${calendarMessage}`);
       
       // Reset form
       setFormData({ name: "", email: "", company: "", notes: "" });
@@ -171,31 +221,52 @@ export default function BookingDialog({ children }: BookingDialogProps) {
               />
             </div>
             {selectedDate && (
-              <p className="text-sm text-muted-foreground flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                Selected: {format(selectedDate, "MMMM d, yyyy")}
-              </p>
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Selected: {format(selectedDate, "MMMM d, yyyy")}
+                </p>
+                {googleCalendarConfigured !== null && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#0D9488]" />
+                    {googleCalendarConfigured
+                      ? "Availability is checking your Google Calendar."
+                      : "Google Calendar credentials are not configured yet; booking still saves to the CRM."}
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
           {/* Time Slot Selection */}
           <div className="space-y-2">
             <Label>Select Time Slot (45 minutes) *</Label>
+            {isLoadingAvailability && (
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Checking availability...
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-2">
-              {TIME_SLOTS.map((slot) => (
-                <button
-                  key={slot}
-                  type="button"
-                  onClick={() => setSelectedTimeSlot(slot)}
-                  className={`p-3 rounded-lg border text-sm transition-all ${
-                    selectedTimeSlot === slot
-                      ? "bg-[#0D9488] text-white border-transparent"
-                      : "hover:border-[#0D9488] hover:bg-secondary"
-                  }`}
-                >
-                  {slot}
-                </button>
-              ))}
+              {TIME_SLOTS.map((slot) => {
+                const isAvailable = selectedDate ? availableSlots[slot] !== false : true;
+                return (
+                  <button
+                    key={slot}
+                    type="button"
+                    disabled={!selectedDate || isLoadingAvailability || !isAvailable}
+                    onClick={() => setSelectedTimeSlot(slot)}
+                    className={`min-h-12 rounded-lg border p-3 text-sm transition-all disabled:cursor-not-allowed disabled:opacity-45 ${
+                      selectedTimeSlot === slot
+                        ? "bg-[#0D9488] text-white border-transparent"
+                        : "hover:border-[#0D9488] hover:bg-secondary"
+                    }`}
+                  >
+                    <span className="block">{slot}</span>
+                    {!isAvailable && <span className="mt-1 block text-xs">Booked</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
