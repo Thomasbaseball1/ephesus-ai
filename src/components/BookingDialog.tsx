@@ -38,6 +38,7 @@ interface BookingDialogProps {
 type AvailabilityResponse = {
   timeSlots: { slot: string; available: boolean }[];
   googleCalendarConfigured: boolean;
+  googleCalendarWarning?: string | null;
 };
 
 export default function BookingDialog({ children }: BookingDialogProps) {
@@ -48,6 +49,7 @@ export default function BookingDialog({ children }: BookingDialogProps) {
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<Record<string, boolean>>({});
   const [googleCalendarConfigured, setGoogleCalendarConfigured] = useState<boolean | null>(null);
+  const [googleCalendarWarning, setGoogleCalendarWarning] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -59,6 +61,7 @@ export default function BookingDialog({ children }: BookingDialogProps) {
     if (!selectedDate) {
       setAvailableSlots({});
       setGoogleCalendarConfigured(null);
+      setGoogleCalendarWarning(null);
       return;
     }
 
@@ -76,11 +79,13 @@ export default function BookingDialog({ children }: BookingDialogProps) {
         if (cancelled) return;
         setAvailableSlots(Object.fromEntries(data.timeSlots.map((item) => [item.slot, item.available])));
         setGoogleCalendarConfigured(data.googleCalendarConfigured);
+        setGoogleCalendarWarning(data.googleCalendarWarning ?? null);
       })
       .catch(() => {
         if (cancelled) return;
         setAvailableSlots(Object.fromEntries(TIME_SLOTS.map((slot) => [slot, true])));
         setGoogleCalendarConfigured(null);
+        setGoogleCalendarWarning("Availability could not be loaded. Booking may still be submitted.");
         toast.error("Availability could not be loaded. Please try again.");
       })
       .finally(() => {
@@ -132,6 +137,8 @@ export default function BookingDialog({ children }: BookingDialogProps) {
       const booking = await response.json();
       const calendarMessage = booking.googleCalendar?.eventCreated
         ? " Google Calendar invite sent."
+        : booking.googleCalendar?.warning
+          ? " Booking saved; calendar invite needs attention."
         : " We'll contact you soon.";
 
       toast.success(`Consultation booked successfully!${calendarMessage}`);
@@ -232,6 +239,11 @@ export default function BookingDialog({ children }: BookingDialogProps) {
                     {googleCalendarConfigured
                       ? "Availability is checking your Google Calendar."
                       : "Google Calendar credentials are not configured yet; booking still saves to the CRM."}
+                  </p>
+                )}
+                {googleCalendarWarning && (
+                  <p className="text-sm text-amber-300">
+                    {googleCalendarWarning}
                   </p>
                 )}
               </div>

@@ -29,7 +29,16 @@ export async function GET(request: NextRequest) {
       .where(and(eq(bookings.date, date), ne(bookings.status, 'cancelled')));
 
     const databaseBusySlots = bookedRows.map((row) => row.timeSlot);
-    const googleBusySlots = await getBusyGoogleCalendarSlots(date, TIME_SLOTS);
+    let googleBusySlots: string[] = [];
+    let googleCalendarWarning: string | null = null;
+
+    try {
+      googleBusySlots = await getBusyGoogleCalendarSlots(date, TIME_SLOTS);
+    } catch (error) {
+      googleCalendarWarning = 'Google Calendar availability could not be checked. Showing CRM-booked slots only.';
+      console.error('[booking-availability] Google Calendar check failed:', error);
+    }
+
     const busySlots = Array.from(new Set([...databaseBusySlots, ...googleBusySlots]));
 
     return NextResponse.json({
@@ -40,6 +49,7 @@ export async function GET(request: NextRequest) {
       })),
       busySlots,
       googleCalendarConfigured: isGoogleCalendarConfigured(),
+      googleCalendarWarning,
     });
   } catch (error) {
     console.error('[booking-availability] GET failed:', error);

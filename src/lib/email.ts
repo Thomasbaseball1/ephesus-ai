@@ -2,7 +2,8 @@ import { Resend } from 'resend';
 
 const NOTIFICATION_EMAILS = [
   'tmore.haller@yahoo.com',
-  'deenwest@gmail.com'
+  'deenwest@gmail.com',
+  'support@ephesusai.com'
 ];
 
 function getResendClient() {

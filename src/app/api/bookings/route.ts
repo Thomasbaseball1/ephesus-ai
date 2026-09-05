@@ -4,6 +4,7 @@ import { bookings } from '@/db/schema';
 import { eq, like, or, and, ne } from 'drizzle-orm';
 import { sendBookingNotification } from '@/lib/email';
 import { createGoogleCalendarEvent, isGoogleCalendarConfigured, isGoogleCalendarSlotAvailable } from '@/lib/google-calendar';
+import { sendBookingSmsNotification } from '@/lib/sms';
 
 export async function GET(request: NextRequest) {
   try {
@@ -141,7 +142,15 @@ export async function POST(request: NextRequest) {
     }
 
     const googleCalendarConfigured = isGoogleCalendarConfigured();
-    const googleSlotAvailable = await isGoogleCalendarSlotAvailable(sanitizedData.date, sanitizedData.timeSlot);
+    let googleCalendarWarning: string | null = null;
+    let googleSlotAvailable = true;
+
+    try {
+      googleSlotAvailable = await isGoogleCalendarSlotAvailable(sanitizedData.date, sanitizedData.timeSlot);
+    } catch (error) {
+      googleCalendarWarning = 'Google Calendar availability could not be checked. Booking was checked against the CRM schedule only.';
+      console.error('Failed to check Google Calendar availability:', error);
+    }
 
     if (!googleSlotAvailable) {
       return NextResponse.json(
@@ -150,27 +159,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let googleCalendarEventId: string | null = null;
-    if (googleCalendarConfigured) {
-      googleCalendarEventId = await createGoogleCalendarEvent({
-        name: sanitizedData.name,
-        email: sanitizedData.email,
-        company: sanitizedData.company,
-        date: sanitizedData.date,
-        timeSlot: sanitizedData.timeSlot,
-        notes: sanitizedData.notes,
-      });
-    }
-
     // Insert booking
     const newBooking = await db
       .insert(bookings)
       .values(sanitizedData)
       .returning();
 
+    let googleCalendarEventId: string | null = null;
+    if (googleCalendarConfigured) {
+      try {
+        googleCalendarEventId = await createGoogleCalendarEvent({
+          name: sanitizedData.name,
+          email: sanitizedData.email,
+          company: sanitizedData.company,
+          date: sanitizedData.date,
+          timeSlot: sanitizedData.timeSlot,
+          notes: sanitizedData.notes,
+        });
+      } catch (error) {
+        googleCalendarWarning = 'Booking was saved, but the Google Calendar event could not be created. Check GOOGLE_PRIVATE_KEY, GOOGLE_CLIENT_EMAIL, and calendar sharing.';
+        console.error('Failed to create Google Calendar event:', error);
+      }
+    }
+
     // Send email notification (non-blocking)
     sendBookingNotification(newBooking[0]).catch(error => {
       console.error('Failed to send booking notification email:', error);
+    });
+
+    sendBookingSmsNotification(sanitizedData).catch(error => {
+      console.error('Failed to send booking SMS notification:', error);
     });
 
     return NextResponse.json(
@@ -180,6 +198,7 @@ export async function POST(request: NextRequest) {
           configured: googleCalendarConfigured,
           eventCreated: Boolean(googleCalendarEventId),
           eventId: googleCalendarEventId,
+          warning: googleCalendarWarning,
         },
       },
       { status: 201 }

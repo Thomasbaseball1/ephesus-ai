@@ -3,6 +3,24 @@ import { google } from 'googleapis';
 const CONSULTATION_TIME_ZONE = 'America/New_York';
 const CONSULTATION_DURATION_MINUTES = 45;
 
+function normalizePrivateKey(value: string) {
+  const unquoted = value.trim().replace(/^["']|["']$/g, '');
+  const withLineBreaks = unquoted.replace(/\\n/g, '\n');
+
+  if (withLineBreaks.includes('BEGIN PRIVATE KEY')) {
+    return withLineBreaks;
+  }
+
+  try {
+    const decoded = Buffer.from(unquoted, 'base64').toString('utf8');
+    if (decoded.includes('BEGIN PRIVATE KEY')) return decoded;
+  } catch {
+    // Keep the original value so Google auth can produce the real auth error.
+  }
+
+  return withLineBreaks;
+}
+
 // Parse the time slot string (e.g. "9:00 AM - 9:45 AM") into start/end Date objects
 export function parseTimeSlot(dateStr: string, timeSlot: string): { start: Date; end: Date } {
   const [startTime] = timeSlot.split(' - ');
@@ -42,7 +60,7 @@ export interface BookingData {
 
 function getGoogleCalendarConfig() {
   const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY ? normalizePrivateKey(process.env.GOOGLE_PRIVATE_KEY) : null;
   const calendarId = process.env.GOOGLE_CALENDAR_ID || 'primary';
 
   if (!clientEmail || !privateKey) {
