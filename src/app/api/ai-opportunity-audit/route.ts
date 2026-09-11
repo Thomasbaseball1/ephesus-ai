@@ -12,11 +12,15 @@ type AuditPayload = {
   industry?: string;
   teamSize?: string;
   monthlyLeads?: string;
+  primarySoftware?: string[];
   currentSystems?: string[];
+  systemsOverview?: string;
+  disconnectedSystems?: string;
   biggestProblems?: string[];
   lostBusinessSources?: string[];
   automationGoals?: string[];
   currentProcess?: string;
+  manualWork?: string;
   idealOutcome?: string;
   urgency?: string;
   budgetRange?: string;
@@ -74,16 +78,18 @@ export async function POST(request: NextRequest) {
     const email = asCleanText(body.email).toLowerCase();
     const company = asCleanText(body.company);
     const industry = asCleanText(body.industry);
+    const systemsOverview = asCleanText(body.systemsOverview);
     const currentProcess = asCleanText(body.currentProcess);
     const idealOutcome = asCleanText(body.idealOutcome);
 
-    if (!name || !email || !company || !industry || !currentProcess || !idealOutcome) {
+    if (!name || !email || !company || !industry || !systemsOverview || !currentProcess || !idealOutcome) {
       return NextResponse.json(
-        { error: "Name, email, company, industry, current process, and ideal outcome are required." },
+        { error: "Name, email, company, industry, systems overview, current process, and ideal outcome are required." },
         { status: 400 },
       );
     }
 
+    const primarySoftware = asCleanList(body.primarySoftware);
     const currentSystems = asCleanList(body.currentSystems);
     const biggestProblems = asCleanList(body.biggestProblems);
     const lostBusinessSources = asCleanList(body.lostBusinessSources);
@@ -108,12 +114,16 @@ export async function POST(request: NextRequest) {
           ${section("Business Snapshot", [
             ["Team size", asCleanText(body.teamSize)],
             ["Monthly leads", asCleanText(body.monthlyLeads)],
+            ["Specific tools", primarySoftware],
             ["Current systems", currentSystems],
+            ["Systems overview", systemsOverview],
+            ["Disconnected systems", asCleanText(body.disconnectedSystems)],
           ])}
           ${section("Problems and Lost Business", [
             ["Biggest problems", biggestProblems],
             ["Lost business sources", lostBusinessSources],
             ["Current process", currentProcess],
+            ["Manual work", asCleanText(body.manualWork)],
           ])}
           ${section("AI Fit", [
             ["Automation goals", automationGoals],

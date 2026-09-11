@@ -30,6 +30,27 @@ const systemOptions = [
   "Spreadsheets/manual tracking",
 ];
 
+const softwareOptions = [
+  "Jobber",
+  "ServiceTitan",
+  "Housecall Pro",
+  "FieldEdge",
+  "Service Fusion",
+  "HubSpot",
+  "Salesforce",
+  "Zoho CRM",
+  "QuickBooks",
+  "Xero",
+  "Google Workspace",
+  "Microsoft 365 / Outlook",
+  "Slack",
+  "Microsoft Teams",
+  "Stripe",
+  "Square",
+  "Zapier / Make / n8n",
+  "None / mostly manual",
+];
+
 const problemOptions = [
   "Missed calls",
   "Slow follow-up",
@@ -76,11 +97,15 @@ type FormState = {
   industry: string;
   teamSize: string;
   monthlyLeads: string;
+  primarySoftware: string[];
   currentSystems: string[];
+  systemsOverview: string;
+  disconnectedSystems: string;
   biggestProblems: string[];
   lostBusinessSources: string[];
   automationGoals: string[];
   currentProcess: string;
+  manualWork: string;
   idealOutcome: string;
   urgency: string;
   budgetRange: string;
@@ -96,11 +121,15 @@ const initialState: FormState = {
   industry: "",
   teamSize: "",
   monthlyLeads: "",
+  primarySoftware: [],
   currentSystems: [],
+  systemsOverview: "",
+  disconnectedSystems: "",
   biggestProblems: [],
   lostBusinessSources: [],
   automationGoals: [],
   currentProcess: "",
+  manualWork: "",
   idealOutcome: "",
   urgency: "",
   budgetRange: "",
@@ -157,9 +186,11 @@ export default function AiOpportunityAuditForm() {
       form.industry,
       form.teamSize,
       form.monthlyLeads,
+      form.systemsOverview,
       form.currentProcess,
       form.idealOutcome,
       form.urgency,
+      form.primarySoftware.length,
       form.currentSystems.length,
       form.biggestProblems.length,
       form.lostBusinessSources.length,
@@ -288,6 +319,31 @@ export default function AiOpportunityAuditForm() {
           </div>
 
           <CheckboxGrid label="What systems do you use right now?" options={systemOptions} value={form.currentSystems} onChange={(next) => setField("currentSystems", next)} />
+
+          <div className="mt-6 space-y-6">
+            <CheckboxGrid label="Which specific tools or platforms are in the business today?" options={softwareOptions} value={form.primarySoftware} onChange={(next) => setField("primarySoftware", next)} />
+            <div className="space-y-2">
+              <Label htmlFor="systemsOverview">Give us an overview of your systems *</Label>
+              <Textarea
+                id="systemsOverview"
+                value={form.systemsOverview}
+                onChange={(event) => setField("systemsOverview", event.target.value)}
+                required
+                rows={4}
+                placeholder="Example: We use Jobber for scheduling, QuickBooks for invoices, Outlook for email, and a spreadsheet for leads. Nothing talks to each other yet."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="disconnectedSystems">What systems do not connect well today?</Label>
+              <Textarea
+                id="disconnectedSystems"
+                value={form.disconnectedSystems}
+                onChange={(event) => setField("disconnectedSystems", event.target.value)}
+                rows={3}
+                placeholder="Example: Website leads are emailed to the owner, then someone manually adds them to Jobber later."
+              />
+            </div>
+          </div>
         </Card>
 
         <Card className="border-white/10 bg-white/[0.045] p-5 shadow-2xl shadow-black/20 sm:p-6">
@@ -310,11 +366,35 @@ export default function AiOpportunityAuditForm() {
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="currentProcess">How are calls, emails, chats, and new leads handled today? *</Label>
-              <Textarea id="currentProcess" value={form.currentProcess} onChange={(event) => setField("currentProcess", event.target.value)} required rows={4} />
+              <Textarea
+                id="currentProcess"
+                value={form.currentProcess}
+                onChange={(event) => setField("currentProcess", event.target.value)}
+                required
+                rows={4}
+                placeholder="Who answers? Where does the lead go? Who follows up? What happens after hours?"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manualWork">What manual work eats up the most time?</Label>
+              <Textarea
+                id="manualWork"
+                value={form.manualWork}
+                onChange={(event) => setField("manualWork", event.target.value)}
+                rows={3}
+                placeholder="Example: entering calls into the CRM, chasing estimates, reminding customers, moving info between email and Jobber."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="idealOutcome">If AI worked perfectly for you, what would change? *</Label>
-              <Textarea id="idealOutcome" value={form.idealOutcome} onChange={(event) => setField("idealOutcome", event.target.value)} required rows={4} />
+              <Textarea
+                id="idealOutcome"
+                value={form.idealOutcome}
+                onChange={(event) => setField("idealOutcome", event.target.value)}
+                required
+                rows={4}
+                placeholder="Example: Every call gets answered, leads get booked into Jobber, customers get reminders, and owners only see the exceptions."
+              />
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
