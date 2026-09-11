@@ -44,6 +44,7 @@ export default function Header() {
     { href: "/services", label: "Services" },
     { href: "/pricing", label: "Pricing" },
     { href: "/demo", label: "Live Demo" },
+    { href: "/ai-opportunity-audit", label: "AI Audit" },
     { href: "/about", label: "About" },
     { href: "/contact", label: "Contact" },
   ];
