@@ -89,6 +89,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/services/outbound-b2b-cold-caller" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Outbound B2B Cold Caller
+                </Link>
+              </li>
+              <li>
                 <Link href="/terms-of-service" className="text-muted-foreground hover:text-foreground transition-colors">
                   Terms of Service
                 </Link>

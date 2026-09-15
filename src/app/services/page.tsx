@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, PhoneCall, Mail, MessageSquare, CheckCircle, Sparkles, RefreshCw } from "lucide-react";
+import { ArrowRight, PhoneCall, Mail, MessageSquare, CheckCircle, Sparkles, RefreshCw, Target } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import CalendlyButton from "@/components/CalendlyButton";
@@ -39,6 +39,16 @@ const services = [
     title: "AI Website Chatbot",
     desc: "Embed an intelligent AI chat on your website. It engages visitors, answers questions, captures leads, and provides instant support — converting browsers into buyers.",
     highlights: ["Lead capture & qualification", "Instant visitor support", "Brand-trained AI", "Easy website embed"],
+  },
+  {
+    href: "/services/outbound-b2b-cold-caller",
+    icon: Target,
+    gradient: "from-[#77ead6] to-[#0D9488]",
+    badgeColor: "bg-[#77ead6]/10 text-[#77ead6] border-[#77ead6]/20",
+    badge: "Sales",
+    title: "Outbound B2B Cold Caller",
+    desc: "Use Vapi to call targeted B2B prospect lists, qualify buyers, handle objections, book meetings, and push outcomes back into your CRM.",
+    highlights: ["Vapi outbound calls", "Lead qualification", "Meeting booking", "CRM call outcomes"],
   },
   {
     href: "/services/ai-lead-revival",
@@ -88,7 +98,7 @@ export default function ServicesPage() {
 
         {/* Services Grid */}
         <section className="container mx-auto px-6 py-20 md:py-32">
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-8 max-w-7xl mx-auto">
             {services.map(({ href, icon: Icon, gradient, badgeColor, badge, title, desc, highlights }, i) => (
               <Card
                 key={title}
