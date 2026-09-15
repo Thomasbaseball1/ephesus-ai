@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,53 +16,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
-const softwareOptions = [
-  "Jobber",
-  "ServiceTitan",
-  "Housecall Pro",
-  "FieldEdge",
-  "Service Fusion",
-  "HubSpot",
-  "Salesforce",
-  "Zoho CRM",
-  "QuickBooks",
-  "Xero",
-  "Google Workspace",
-  "Microsoft 365 / Outlook",
-  "Slack",
-  "Microsoft Teams",
-  "Stripe",
-  "Square",
-  "Zapier / Make / n8n",
-  "None / mostly manual",
-];
-
-const problemOptions = [
-  "Missed calls",
-  "Slow follow-up",
-  "Leads not getting entered into a CRM",
-  "Scheduling is manual or messy",
-  "Customers ask the same questions repeatedly",
-  "Email inbox is overloaded",
-  "No clear lead tracking",
-  "Quotes or estimates take too long",
-  "Past leads are not being revived",
-  "Staff is spending too much time on admin work",
-];
-
-const automationOptions = [
-  "Answer incoming calls",
-  "Qualify new leads",
-  "Book appointments",
-  "Reply to common emails",
-  "Route messages to the right person",
-  "Send reminders",
-  "Follow up with old leads",
-  "Create CRM records",
-  "Summarize calls and emails",
-  "Report on missed opportunities",
-];
-
 type FormState = {
   name: string;
   email: string;
@@ -73,10 +25,10 @@ type FormState = {
   industry: string;
   teamSize: string;
   monthlyLeads: string;
-  primarySoftware: string[];
+  toolsOverview: string;
   systemsOverview: string;
-  biggestProblems: string[];
-  automationGoals: string[];
+  biggestProblems: string;
+  automationGoals: string;
   idealOutcome: string;
   urgency: string;
   budgetRange: string;
@@ -92,52 +44,15 @@ const initialState: FormState = {
   industry: "",
   teamSize: "",
   monthlyLeads: "",
-  primarySoftware: [],
+  toolsOverview: "",
   systemsOverview: "",
-  biggestProblems: [],
-  automationGoals: [],
+  biggestProblems: "",
+  automationGoals: "",
   idealOutcome: "",
   urgency: "",
   budgetRange: "",
   notes: "",
 };
-
-function toggleList(list: string[], value: string) {
-  return list.includes(value) ? list.filter((item) => item !== value) : [...list, value];
-}
-
-function CheckboxGrid({
-  label,
-  options,
-  value,
-  onChange,
-}: {
-  label: string;
-  options: string[];
-  value: string[];
-  onChange: (next: string[]) => void;
-}) {
-  return (
-    <fieldset className="space-y-3">
-      <legend className="text-sm font-semibold text-white">{label}</legend>
-      <div className="grid gap-2 sm:grid-cols-2">
-        {options.map((option) => (
-          <label
-            key={option}
-            className="flex min-h-12 cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-3 text-sm text-white/72 transition hover:border-[#77ead6]/30 hover:bg-white/[0.055]"
-          >
-            <Checkbox
-              checked={value.includes(option)}
-              onCheckedChange={() => onChange(toggleList(value, option))}
-              className="mt-0.5 border-white/25 data-[state=checked]:border-[#77ead6] data-[state=checked]:bg-[#77ead6] data-[state=checked]:text-[#06211d]"
-            />
-            <span>{option}</span>
-          </label>
-        ))}
-      </div>
-    </fieldset>
-  );
-}
 
 export default function AiOpportunityAuditForm() {
   const [form, setForm] = useState<FormState>(initialState);
@@ -152,12 +67,12 @@ export default function AiOpportunityAuditForm() {
       form.industry,
       form.teamSize,
       form.monthlyLeads,
+      form.toolsOverview,
       form.systemsOverview,
+      form.biggestProblems,
+      form.automationGoals,
       form.idealOutcome,
       form.urgency,
-      form.primarySoftware.length,
-      form.biggestProblems.length,
-      form.automationGoals.length,
     ];
     return Math.round((fields.filter(Boolean).length / fields.length) * 100);
   }, [form]);
@@ -281,17 +196,27 @@ export default function AiOpportunityAuditForm() {
             </div>
           </div>
 
-          <div className="space-y-6">
-            <CheckboxGrid label="Which tools or platforms are in the business today?" options={softwareOptions} value={form.primarySoftware} onChange={(next) => setField("primarySoftware", next)} />
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="systemsOverview">Quick systems overview *</Label>
+              <Label htmlFor="toolsOverview">What software or tools do you use today? *</Label>
+              <Textarea
+                id="toolsOverview"
+                value={form.toolsOverview}
+                onChange={(event) => setField("toolsOverview", event.target.value)}
+                required
+                rows={3}
+                placeholder="Example: Jobber, ServiceTitan, Housecall Pro, QuickBooks, Outlook, Gmail, spreadsheets, phone system, text reminders..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="systemsOverview">How do those systems work together right now? *</Label>
               <Textarea
                 id="systemsOverview"
                 value={form.systemsOverview}
                 onChange={(event) => setField("systemsOverview", event.target.value)}
                 required
                 rows={4}
-                placeholder="Example: We use Jobber for scheduling, QuickBooks for invoices, Outlook for email, and spreadsheets for leads. Website leads still get copied over by hand."
+                placeholder="Example: Website leads come in by email, someone copies them into Jobber, invoices go through QuickBooks, and follow-up is mostly manual."
               />
             </div>
           </div>
@@ -302,9 +227,29 @@ export default function AiOpportunityAuditForm() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#77ead6]/75">Opportunity</p>
             <h2 className="mt-2 text-xl font-semibold text-white">Where is business leaking?</h2>
           </div>
-          <div className="space-y-6">
-            <CheckboxGrid label="Biggest problems right now" options={problemOptions} value={form.biggestProblems} onChange={(next) => setField("biggestProblems", next)} />
-            <CheckboxGrid label="What would you want AI to help with first?" options={automationOptions} value={form.automationGoals} onChange={(next) => setField("automationGoals", next)} />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="biggestProblems">What problems are costing you the most business? *</Label>
+              <Textarea
+                id="biggestProblems"
+                value={form.biggestProblems}
+                onChange={(event) => setField("biggestProblems", event.target.value)}
+                required
+                rows={4}
+                placeholder="Example: missed calls, slow follow-up, no-shows, quotes going out late, old leads not getting touched, customers waiting too long..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="automationGoals">What would you want AI to help with first? *</Label>
+              <Textarea
+                id="automationGoals"
+                value={form.automationGoals}
+                onChange={(event) => setField("automationGoals", event.target.value)}
+                required
+                rows={3}
+                placeholder="Example: answer calls, book appointments, reply to common emails, update the CRM, send reminders, follow up with leads..."
+              />
+            </div>
           </div>
         </Card>
 

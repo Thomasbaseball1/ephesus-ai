@@ -12,13 +12,14 @@ type AuditPayload = {
   industry?: string;
   teamSize?: string;
   monthlyLeads?: string;
+  toolsOverview?: string;
   primarySoftware?: string[];
   currentSystems?: string[];
   systemsOverview?: string;
   disconnectedSystems?: string;
-  biggestProblems?: string[];
+  biggestProblems?: string[] | string;
   lostBusinessSources?: string[];
-  automationGoals?: string[];
+  automationGoals?: string[] | string;
   currentProcess?: string;
   manualWork?: string;
   idealOutcome?: string;
@@ -54,6 +55,11 @@ function asCleanList(value: unknown) {
     : [];
 }
 
+function asCleanListOrText(value: unknown) {
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0).map((item) => item.trim()).join(", ");
+  return asCleanText(value);
+}
+
 function section(title: string, rows: [string, string | string[] | undefined][]) {
   const filteredRows = rows.filter(([, value]) => Array.isArray(value) ? value.length > 0 : Boolean(value));
   if (!filteredRows.length) return "";
@@ -78,22 +84,23 @@ export async function POST(request: NextRequest) {
     const email = asCleanText(body.email).toLowerCase();
     const company = asCleanText(body.company);
     const industry = asCleanText(body.industry);
+    const toolsOverview = asCleanText(body.toolsOverview);
     const systemsOverview = asCleanText(body.systemsOverview);
     const currentProcess = asCleanText(body.currentProcess);
     const idealOutcome = asCleanText(body.idealOutcome);
+    const biggestProblems = asCleanListOrText(body.biggestProblems);
+    const automationGoals = asCleanListOrText(body.automationGoals);
 
-    if (!name || !email || !company || !industry || !systemsOverview || !idealOutcome) {
+    if (!name || !email || !company || !industry || !toolsOverview || !systemsOverview || !biggestProblems || !automationGoals || !idealOutcome) {
       return NextResponse.json(
-        { error: "Name, email, company, industry, systems overview, and ideal outcome are required." },
+        { error: "Name, email, company, industry, tools, systems overview, problems, AI goals, and ideal outcome are required." },
         { status: 400 },
       );
     }
 
     const primarySoftware = asCleanList(body.primarySoftware);
     const currentSystems = asCleanList(body.currentSystems);
-    const biggestProblems = asCleanList(body.biggestProblems);
     const lostBusinessSources = asCleanList(body.lostBusinessSources);
-    const automationGoals = asCleanList(body.automationGoals);
 
     const internalHtml = `
       <div style="font-family:Arial,sans-serif;max-width:720px;margin:0 auto;color:#0f172a;">
@@ -114,6 +121,7 @@ export async function POST(request: NextRequest) {
           ${section("Business Snapshot", [
             ["Team size", asCleanText(body.teamSize)],
             ["Monthly leads", asCleanText(body.monthlyLeads)],
+            ["Tools overview", toolsOverview],
             ["Specific tools", primarySoftware],
             ["Current systems", currentSystems],
             ["Systems overview", systemsOverview],
@@ -147,6 +155,7 @@ export async function POST(request: NextRequest) {
           <p style="margin:0 0 16px;font-size:15px;line-height:1.7;">Based on what you shared, the best next step is a short conversation with Ephesus AI so we can map your current systems, identify the easiest automation win, and recommend what should be connected first.</p>
           ${section("What you told us", [
             ["Tools in use", primarySoftware],
+            ["Tools overview", toolsOverview],
             ["Systems overview", systemsOverview],
             ["Biggest problems", biggestProblems],
             ["AI goals", automationGoals],
