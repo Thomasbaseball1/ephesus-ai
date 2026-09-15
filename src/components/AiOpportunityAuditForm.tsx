@@ -17,19 +17,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
-const systemOptions = [
-  "CRM",
-  "Scheduling/calendar",
-  "Phone system",
-  "Email inbox",
-  "Website chat",
-  "Payment processing",
-  "Accounting",
-  "Marketing/email campaigns",
-  "Field service/job management",
-  "Spreadsheets/manual tracking",
-];
-
 const softwareOptions = [
   "Jobber",
   "ServiceTitan",
@@ -64,17 +51,6 @@ const problemOptions = [
   "Staff is spending too much time on admin work",
 ];
 
-const lostBusinessOptions = [
-  "People call after hours and do not get answered",
-  "New leads wait too long for a response",
-  "Follow-up falls through after the first contact",
-  "Customers cannot book easily",
-  "No-shows or missed appointments",
-  "Quotes are not sent fast enough",
-  "Old customers are not being reactivated",
-  "The team does not know which leads are hottest",
-];
-
 const automationOptions = [
   "Answer incoming calls",
   "Qualify new leads",
@@ -98,14 +74,9 @@ type FormState = {
   teamSize: string;
   monthlyLeads: string;
   primarySoftware: string[];
-  currentSystems: string[];
   systemsOverview: string;
-  disconnectedSystems: string;
   biggestProblems: string[];
-  lostBusinessSources: string[];
   automationGoals: string[];
-  currentProcess: string;
-  manualWork: string;
   idealOutcome: string;
   urgency: string;
   budgetRange: string;
@@ -122,14 +93,9 @@ const initialState: FormState = {
   teamSize: "",
   monthlyLeads: "",
   primarySoftware: [],
-  currentSystems: [],
   systemsOverview: "",
-  disconnectedSystems: "",
   biggestProblems: [],
-  lostBusinessSources: [],
   automationGoals: [],
-  currentProcess: "",
-  manualWork: "",
   idealOutcome: "",
   urgency: "",
   budgetRange: "",
@@ -187,13 +153,10 @@ export default function AiOpportunityAuditForm() {
       form.teamSize,
       form.monthlyLeads,
       form.systemsOverview,
-      form.currentProcess,
       form.idealOutcome,
       form.urgency,
       form.primarySoftware.length,
-      form.currentSystems.length,
       form.biggestProblems.length,
-      form.lostBusinessSources.length,
       form.automationGoals.length,
     ];
     return Math.round((fields.filter(Boolean).length / fields.length) * 100);
@@ -219,7 +182,7 @@ export default function AiOpportunityAuditForm() {
 
       setSubmitted(true);
       setForm(initialState);
-      toast.success("Questionnaire submitted. We will review it and follow up.");
+      toast.success("Audit submitted. We emailed you a copy and will follow up.");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to submit questionnaire");
     } finally {
@@ -231,9 +194,9 @@ export default function AiOpportunityAuditForm() {
     return (
       <Card className="border-[#77ead6]/20 bg-[#77ead6]/[0.06] p-8 text-center shadow-2xl shadow-black/20">
         <CheckCircle2 className="mx-auto h-12 w-12 text-[#77ead6]" />
-        <h2 className="mt-5 text-2xl font-semibold text-white">Questionnaire received</h2>
+        <h2 className="mt-5 text-2xl font-semibold text-white">Audit received</h2>
         <p className="mx-auto mt-3 max-w-xl text-base leading-7 text-white/62">
-          Thanks. Your answers were sent to the Ephesus AI team so we can identify the highest-value automation opportunities before the next conversation.
+          Thanks. Your answers were sent to the Ephesus AI team, and a confirmation email is on its way to your inbox.
         </p>
         <Button
           type="button"
@@ -272,12 +235,12 @@ export default function AiOpportunityAuditForm() {
               <Input id="company" value={form.company} onChange={(event) => setField("company", event.target.value)} required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="website">Website</Label>
-              <Input id="website" value={form.website} onChange={(event) => setField("website", event.target.value)} placeholder="https://" />
-            </div>
-            <div className="space-y-2">
               <Label htmlFor="industry">Industry *</Label>
               <Input id="industry" value={form.industry} onChange={(event) => setField("industry", event.target.value)} required placeholder="HVAC, salon, law firm, clinic..." />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="website">Website</Label>
+              <Input id="website" value={form.website} onChange={(event) => setField("website", event.target.value)} placeholder="https://" />
             </div>
           </div>
         </Card>
@@ -286,7 +249,7 @@ export default function AiOpportunityAuditForm() {
           <div className="mb-5 grid gap-4 sm:grid-cols-2">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#77ead6]/75">Operations</p>
-              <h2 className="mt-2 text-xl font-semibold text-white">How does the business run today?</h2>
+              <h2 className="mt-2 text-xl font-semibold text-white">What are you using now?</h2>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -318,29 +281,17 @@ export default function AiOpportunityAuditForm() {
             </div>
           </div>
 
-          <CheckboxGrid label="What systems do you use right now?" options={systemOptions} value={form.currentSystems} onChange={(next) => setField("currentSystems", next)} />
-
-          <div className="mt-6 space-y-6">
-            <CheckboxGrid label="Which specific tools or platforms are in the business today?" options={softwareOptions} value={form.primarySoftware} onChange={(next) => setField("primarySoftware", next)} />
+          <div className="space-y-6">
+            <CheckboxGrid label="Which tools or platforms are in the business today?" options={softwareOptions} value={form.primarySoftware} onChange={(next) => setField("primarySoftware", next)} />
             <div className="space-y-2">
-              <Label htmlFor="systemsOverview">Give us an overview of your systems *</Label>
+              <Label htmlFor="systemsOverview">Quick systems overview *</Label>
               <Textarea
                 id="systemsOverview"
                 value={form.systemsOverview}
                 onChange={(event) => setField("systemsOverview", event.target.value)}
                 required
                 rows={4}
-                placeholder="Example: We use Jobber for scheduling, QuickBooks for invoices, Outlook for email, and a spreadsheet for leads. Nothing talks to each other yet."
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="disconnectedSystems">What systems do not connect well today?</Label>
-              <Textarea
-                id="disconnectedSystems"
-                value={form.disconnectedSystems}
-                onChange={(event) => setField("disconnectedSystems", event.target.value)}
-                rows={3}
-                placeholder="Example: Website leads are emailed to the owner, then someone manually adds them to Jobber later."
+                placeholder="Example: We use Jobber for scheduling, QuickBooks for invoices, Outlook for email, and spreadsheets for leads. Website leads still get copied over by hand."
               />
             </div>
           </div>
@@ -353,38 +304,16 @@ export default function AiOpportunityAuditForm() {
           </div>
           <div className="space-y-6">
             <CheckboxGrid label="Biggest problems right now" options={problemOptions} value={form.biggestProblems} onChange={(next) => setField("biggestProblems", next)} />
-            <CheckboxGrid label="What causes the most lost business?" options={lostBusinessOptions} value={form.lostBusinessSources} onChange={(next) => setField("lostBusinessSources", next)} />
             <CheckboxGrid label="What would you want AI to help with first?" options={automationOptions} value={form.automationGoals} onChange={(next) => setField("automationGoals", next)} />
           </div>
         </Card>
 
         <Card className="border-white/10 bg-white/[0.045] p-5 shadow-2xl shadow-black/20 sm:p-6">
           <div className="mb-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#77ead6]/75">Details</p>
-            <h2 className="mt-2 text-xl font-semibold text-white">What should we understand before we talk?</h2>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#77ead6]/75">Goal</p>
+            <h2 className="mt-2 text-xl font-semibold text-white">What should change first?</h2>
           </div>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentProcess">How are calls, emails, chats, and new leads handled today? *</Label>
-              <Textarea
-                id="currentProcess"
-                value={form.currentProcess}
-                onChange={(event) => setField("currentProcess", event.target.value)}
-                required
-                rows={4}
-                placeholder="Who answers? Where does the lead go? Who follows up? What happens after hours?"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="manualWork">What manual work eats up the most time?</Label>
-              <Textarea
-                id="manualWork"
-                value={form.manualWork}
-                onChange={(event) => setField("manualWork", event.target.value)}
-                rows={3}
-                placeholder="Example: entering calls into the CRM, chasing estimates, reminding customers, moving info between email and Jobber."
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="idealOutcome">If AI worked perfectly for you, what would change? *</Label>
               <Textarea
@@ -424,8 +353,8 @@ export default function AiOpportunityAuditForm() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notes">Anything else?</Label>
-              <Textarea id="notes" value={form.notes} onChange={(event) => setField("notes", event.target.value)} rows={3} />
+              <Label htmlFor="notes">Anything else we should know?</Label>
+              <Textarea id="notes" value={form.notes} onChange={(event) => setField("notes", event.target.value)} rows={3} placeholder="Optional: mention current bottlenecks, must-have integrations, or what feels most urgent." />
             </div>
           </div>
         </Card>
@@ -433,14 +362,14 @@ export default function AiOpportunityAuditForm() {
 
       <aside className="lg:sticky lg:top-24 lg:self-start">
         <Card className="border-[#77ead6]/18 bg-[#071211]/90 p-5 shadow-2xl shadow-black/25">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#77ead6]/75">Audit progress</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#77ead6]/75">Quick audit</p>
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/10">
             <div className="h-full rounded-full bg-[#77ead6]" style={{ width: `${completion}%` }} />
           </div>
           <p className="mt-3 text-sm text-white/56">{completion}% complete</p>
           <div className="mt-5 space-y-3 text-sm text-white/58">
             <p>This gives us enough context to spot missed revenue, manual work, and the first automation that would actually matter.</p>
-            <p>Submissions go to the Ephesus AI team for review.</p>
+            <p>You will receive a copy by email after submitting.</p>
           </div>
           <Button
             type="submit"
@@ -448,7 +377,7 @@ export default function AiOpportunityAuditForm() {
             className="mt-6 h-12 w-full gap-2 rounded-xl bg-[#77ead6] font-semibold text-[#06211d] hover:bg-[#9af3e3]"
           >
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-            Submit questionnaire
+            Submit audit
           </Button>
         </Card>
       </aside>
