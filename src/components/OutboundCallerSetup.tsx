@@ -23,9 +23,20 @@ import { toast } from "sonner";
 type Lead = {
   id: string;
   name: string;
+  title: string;
   company: string;
   phone: string;
   email: string;
+  website: string;
+  industry: string;
+  location: string;
+  leadSource: string;
+  consentStatus: string;
+  priority: string;
+  owner: string;
+  painPoint: string;
+  offerAngle: string;
+  lastTouch: string;
   notes: string;
 };
 
@@ -44,9 +55,9 @@ type CampaignDraft = {
 
 const STORAGE_KEY = "ephesus-outbound-caller-draft";
 
-const sampleLeadText = `name,company,phone,email,notes
-John Smith,Smith HVAC,5714657846,john@example.com,Ask about missed-call automation
-Sarah Jones,Jones Plumbing,7035551212,sarah@example.com,Uses Jobber and wants more booked estimates`;
+const sampleLeadText = `name,title,company,phone,email,website,industry,location,leadSource,consentStatus,priority,owner,painPoint,offerAngle,lastTouch,notes
+John Smith,Owner,Smith HVAC,5714657846,john@example.com,https://smithhvac.example,HVAC,Fairfax VA,Website form,Allowed to call,High,Sales team,Missing after-hours calls,Book a demo for missed-call automation,2026-09-10,Ask about ServiceTitan
+Sarah Jones,Operations Manager,Jones Plumbing,7035551212,sarah@example.com,https://jonesplumbing.example,Plumbing,Arlington VA,Referral,Allowed to call,Medium,Thomas,Slow estimate follow-up,Offer AI call answering and estimate follow-up,2026-09-12,Uses Jobber and wants more booked estimates`;
 
 const blankDraft: CampaignDraft = {
   campaignName: "B2B discovery campaign",
@@ -107,18 +118,40 @@ function parseLeads(text: string): Lead[] {
       const combinedName = getValue(row, ["name", "full name", "fullname"]) || `${firstName} ${lastName}`.trim();
       const fallback = {
         name: row[0] || "",
-        company: row[1] || "",
-        phone: row[2] || "",
-        email: row[3] || "",
-        notes: row.slice(4).join(", "),
+        title: row[1] || "",
+        company: row[2] || "",
+        phone: row[3] || "",
+        email: row[4] || "",
+        website: row[5] || "",
+        industry: row[6] || "",
+        location: row[7] || "",
+        leadSource: row[8] || "",
+        consentStatus: row[9] || "",
+        priority: row[10] || "",
+        owner: row[11] || "",
+        painPoint: row[12] || "",
+        offerAngle: row[13] || "",
+        lastTouch: row[14] || "",
+        notes: row.slice(15).join(", "),
       };
 
       return {
         id: `${Date.now()}-${index}-${row.join("-")}`,
         name: combinedName || fallback.name,
+        title: getValue(row, ["title", "role", "job title", "position"]) || fallback.title,
         company: getValue(row, ["company", "business", "account"]) || fallback.company,
         phone: getValue(row, ["phone", "phone number", "mobile", "number"]) || fallback.phone,
         email: getValue(row, ["email", "email address"]) || fallback.email,
+        website: getValue(row, ["website", "site", "url", "domain"]) || fallback.website,
+        industry: getValue(row, ["industry", "vertical", "category"]) || fallback.industry,
+        location: getValue(row, ["location", "city", "city/state", "city state", "market"]) || fallback.location,
+        leadSource: getValue(row, ["leadsource", "lead source", "source"]) || fallback.leadSource,
+        consentStatus: getValue(row, ["consentstatus", "consent status", "consent", "call permission"]) || fallback.consentStatus,
+        priority: getValue(row, ["priority", "tier", "score"]) || fallback.priority,
+        owner: getValue(row, ["owner", "rep", "assigned to", "sales owner"]) || fallback.owner,
+        painPoint: getValue(row, ["painpoint", "pain point", "problem", "need"]) || fallback.painPoint,
+        offerAngle: getValue(row, ["offerangle", "offer angle", "hook", "pitch"]) || fallback.offerAngle,
+        lastTouch: getValue(row, ["lasttouch", "last touch", "last contacted", "last contact"]) || fallback.lastTouch,
         notes: getValue(row, ["notes", "note", "context"]) || fallback.notes,
       };
     })
@@ -128,8 +161,25 @@ function parseLeads(text: string): Lead[] {
 function toCsv(leads: Lead[]) {
   const escapeCell = (value: string) => `"${value.replace(/"/g, '""')}"`;
   return [
-    "name,company,phone,email,notes",
-    ...leads.map((lead) => [lead.name, lead.company, lead.phone, lead.email, lead.notes].map(escapeCell).join(",")),
+    "name,title,company,phone,email,website,industry,location,leadSource,consentStatus,priority,owner,painPoint,offerAngle,lastTouch,notes",
+    ...leads.map((lead) => [
+      lead.name,
+      lead.title,
+      lead.company,
+      lead.phone,
+      lead.email,
+      lead.website,
+      lead.industry,
+      lead.location,
+      lead.leadSource,
+      lead.consentStatus,
+      lead.priority,
+      lead.owner,
+      lead.painPoint,
+      lead.offerAngle,
+      lead.lastTouch,
+      lead.notes,
+    ].map(escapeCell).join(",")),
   ].join("\n");
 }
 
@@ -137,9 +187,20 @@ export default function OutboundCallerSetup() {
   const [draft, setDraft] = useState<CampaignDraft>(blankDraft);
   const [manualLead, setManualLead] = useState<Omit<Lead, "id">>({
     name: "",
+    title: "",
     company: "",
     phone: "",
     email: "",
+    website: "",
+    industry: "",
+    location: "",
+    leadSource: "",
+    consentStatus: "Allowed to call",
+    priority: "Medium",
+    owner: "",
+    painPoint: "",
+    offerAngle: "",
+    lastTouch: "",
     notes: "",
   });
 
@@ -192,7 +253,24 @@ export default function OutboundCallerSetup() {
       ...current,
       leads: [{ id: `${Date.now()}`, ...manualLead }, ...current.leads],
     }));
-    setManualLead({ name: "", company: "", phone: "", email: "", notes: "" });
+    setManualLead({
+      name: "",
+      title: "",
+      company: "",
+      phone: "",
+      email: "",
+      website: "",
+      industry: "",
+      location: "",
+      leadSource: "",
+      consentStatus: "Allowed to call",
+      priority: "Medium",
+      owner: "",
+      painPoint: "",
+      offerAngle: "",
+      lastTouch: "",
+      notes: "",
+    });
   }
 
   function removeLead(id: string) {
@@ -267,7 +345,7 @@ export default function OutboundCallerSetup() {
             <div>
               <p className="dashboard-kicker">Step 1</p>
               <h2 className="text-2xl font-semibold text-white">Load names and phone numbers</h2>
-              <p className="mt-2 text-sm text-white/50">Use columns like name, company, phone, email, notes.</p>
+              <p className="mt-2 text-sm text-white/50">Use columns like name, title, company, phone, website, source, consent, pain point, offer angle, and notes.</p>
             </div>
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-sm text-white/70 hover:bg-white/[0.07]">
               <Upload className="h-4 w-4" />
@@ -299,9 +377,28 @@ export default function OutboundCallerSetup() {
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Name"><Input value={manualLead.name} onChange={(event) => setManualLead((lead) => ({ ...lead, name: event.target.value }))} /></Field>
+            <Field label="Title / role"><Input value={manualLead.title} onChange={(event) => setManualLead((lead) => ({ ...lead, title: event.target.value }))} /></Field>
             <Field label="Company"><Input value={manualLead.company} onChange={(event) => setManualLead((lead) => ({ ...lead, company: event.target.value }))} /></Field>
             <Field label="Phone"><Input value={manualLead.phone} onChange={(event) => setManualLead((lead) => ({ ...lead, phone: event.target.value }))} /></Field>
             <Field label="Email"><Input value={manualLead.email} onChange={(event) => setManualLead((lead) => ({ ...lead, email: event.target.value }))} /></Field>
+            <Field label="Website"><Input value={manualLead.website} onChange={(event) => setManualLead((lead) => ({ ...lead, website: event.target.value }))} /></Field>
+            <Field label="Industry"><Input value={manualLead.industry} onChange={(event) => setManualLead((lead) => ({ ...lead, industry: event.target.value }))} /></Field>
+            <Field label="Location / market"><Input value={manualLead.location} onChange={(event) => setManualLead((lead) => ({ ...lead, location: event.target.value }))} /></Field>
+            <Field label="Lead source"><Input value={manualLead.leadSource} onChange={(event) => setManualLead((lead) => ({ ...lead, leadSource: event.target.value }))} /></Field>
+            <Field label="Consent / call permission"><Input value={manualLead.consentStatus} onChange={(event) => setManualLead((lead) => ({ ...lead, consentStatus: event.target.value }))} /></Field>
+            <Field label="Priority"><Input value={manualLead.priority} onChange={(event) => setManualLead((lead) => ({ ...lead, priority: event.target.value }))} /></Field>
+            <Field label="Owner / assigned rep"><Input value={manualLead.owner} onChange={(event) => setManualLead((lead) => ({ ...lead, owner: event.target.value }))} /></Field>
+            <Field label="Last touch"><Input value={manualLead.lastTouch} onChange={(event) => setManualLead((lead) => ({ ...lead, lastTouch: event.target.value }))} placeholder="YYYY-MM-DD or brief note" /></Field>
+            <div className="sm:col-span-2">
+              <Field label="Pain point">
+                <Textarea value={manualLead.painPoint} onChange={(event) => setManualLead((lead) => ({ ...lead, painPoint: event.target.value }))} rows={2} />
+              </Field>
+            </div>
+            <div className="sm:col-span-2">
+              <Field label="Offer angle / reason for calling">
+                <Textarea value={manualLead.offerAngle} onChange={(event) => setManualLead((lead) => ({ ...lead, offerAngle: event.target.value }))} rows={2} />
+              </Field>
+            </div>
             <div className="sm:col-span-2">
               <Field label="Notes">
                 <Textarea value={manualLead.notes} onChange={(event) => setManualLead((lead) => ({ ...lead, notes: event.target.value }))} rows={3} />
@@ -385,10 +482,14 @@ export default function OutboundCallerSetup() {
                 <thead className="sticky top-0 bg-[#0b1110] text-xs uppercase tracking-[0.12em] text-white/45">
                   <tr>
                     <th className="px-4 py-3">Name</th>
+                    <th className="px-4 py-3">Role</th>
                     <th className="px-4 py-3">Company</th>
                     <th className="px-4 py-3">Phone</th>
                     <th className="px-4 py-3">Email</th>
-                    <th className="px-4 py-3">Notes</th>
+                    <th className="px-4 py-3">Source</th>
+                    <th className="px-4 py-3">Consent</th>
+                    <th className="px-4 py-3">Priority</th>
+                    <th className="px-4 py-3">Pain / angle</th>
                     <th className="px-4 py-3" />
                   </tr>
                 </thead>
@@ -396,10 +497,19 @@ export default function OutboundCallerSetup() {
                   {activeLeads.map((lead) => (
                     <tr key={lead.id} className="bg-white/[0.025] text-white/70">
                       <td className="px-4 py-3 font-medium text-white">{lead.name || "Unnamed"}</td>
+                      <td className="px-4 py-3">{lead.title}</td>
                       <td className="px-4 py-3">{lead.company}</td>
                       <td className="px-4 py-3">{lead.phone}</td>
                       <td className="px-4 py-3">{lead.email}</td>
-                      <td className="px-4 py-3">{lead.notes}</td>
+                      <td className="px-4 py-3">{lead.leadSource}</td>
+                      <td className="px-4 py-3">{lead.consentStatus}</td>
+                      <td className="px-4 py-3">{lead.priority}</td>
+                      <td className="px-4 py-3">
+                        <div className="max-w-[22rem] space-y-1">
+                          <p className="line-clamp-2">{lead.painPoint || lead.notes}</p>
+                          {lead.offerAngle && <p className="text-xs text-[#77ead6]/75">{lead.offerAngle}</p>}
+                        </div>
+                      </td>
                       <td className="px-4 py-3 text-right">
                         {draft.leads.length > 0 && (
                           <button onClick={() => removeLead(lead.id)} className="rounded-lg p-2 text-white/45 hover:bg-white/10 hover:text-white" aria-label={`Remove ${lead.name || "lead"}`}>
@@ -429,6 +539,48 @@ export default function OutboundCallerSetup() {
             <div key={item} className="flex gap-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/60">
               <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-[#77ead6]" />
               <span>{item}</span>
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="border-white/10 bg-white/[0.045] p-5 sm:p-6">
+        <div className="mb-5">
+          <p className="dashboard-kicker">Live call data</p>
+          <h2 className="text-2xl font-semibold text-white">What the cold caller should collect after each call</h2>
+          <p className="mt-2 max-w-3xl text-sm text-white/50">
+            Once the server-side Vapi runner and webhook are live, each call should come back with call metadata, AI analysis, and next-step fields your team can act on.
+          </p>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {[
+            {
+              title: "Call result",
+              items: ["Answered / no answer / voicemail", "Call duration", "End reason", "Recording URL", "Transcript"],
+            },
+            {
+              title: "Sales qualification",
+              items: ["Interest level", "Budget / timeline", "Decision maker status", "Objections", "Competitor or current software"],
+            },
+            {
+              title: "Follow-up",
+              items: ["Next best action", "Booked meeting time", "Human callback needed", "SMS/email follow-up draft", "Assigned owner"],
+            },
+            {
+              title: "Compliance",
+              items: ["Opt-out request", "Do-not-call flag", "Consent notes", "Preferred contact method", "Call attempt count"],
+            },
+          ].map((group) => (
+            <div key={group.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <h3 className="font-semibold text-white">{group.title}</h3>
+              <ul className="mt-3 space-y-2 text-sm text-white/55">
+                {group.items.map((item) => (
+                  <li key={item} className="flex gap-2">
+                    <CheckCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#77ead6]" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ))}
         </div>
