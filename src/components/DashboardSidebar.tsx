@@ -17,6 +17,7 @@ import {
   MonitorPlay,
   Phone,
   Plug,
+  Target,
   User,
   X,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ const NAV_SECTIONS = [
     items: [
       { href: '/dashboard', label: 'Overview', icon: LayoutDashboard, exact: true },
       { href: '/dashboard/receptionist', label: 'AI Receptionist', icon: Phone, badge: 'Live' },
+      { href: '/dashboard/outbound-caller', label: 'Outbound Caller', icon: Target, badge: 'Setup' },
       { href: '/dashboard/demo', label: 'Give it a Try', icon: MonitorPlay },
     ],
   },

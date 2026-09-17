@@ -88,6 +88,7 @@ export default async function DashboardPage({
 
   const services = [
     { icon: Phone, label: 'AI Voice Receptionist', desc: 'Smart call handling and routing', href: '/dashboard/receptionist', status: 'Workspace ready' },
+    { icon: Target, label: 'Outbound B2B Caller', desc: 'Load leads and prepare Vapi campaigns', href: '/dashboard/outbound-caller', status: 'Setup draft' },
     { icon: Mail, label: 'AI Email Automation', desc: 'Intelligent email workflows', href: '/services/ai-email-automation', status: 'In configuration' },
     { icon: Globe, label: 'AI Website Chatbot', desc: 'Always-on visitor engagement', href: '/services/ai-website-chatbot', status: 'In configuration' },
   ];
@@ -222,7 +223,7 @@ export default async function DashboardPage({
               <p className="dashboard-kicker">Connected channels</p>
               <h2>Your AI services</h2>
             </div>
-            <span className="dashboard-count-badge">3 services</span>
+            <span className="dashboard-count-badge">4 services</span>
           </div>
           <div className="dashboard-service-list">
             {services.map(({ icon: Icon, label, desc, href, status }) => (
